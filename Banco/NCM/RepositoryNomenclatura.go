@@ -1,50 +1,45 @@
 package NCM
 
-import "ConsultaTabelas/Banco"
+import (
+	"gorm.io/gorm"
+)
 
 type repositoryNomenclatura struct {
-	db Banco.IConexaoBanco
+	db *gorm.DB
 }
 
 type IRepositoryNomenclatura interface {
 	Create(ncm *NomenclaturaBanco) error
-	GetAll() (*[]NomenclaturaBanco, error)
+	GetAll() ([]*NomenclaturaBanco, error)
 	GetByCodigo(codigo string) (*NomenclaturaBanco, error)
 	Update(ncm *NomenclaturaBanco) error
-	Delete(ncm *NcmBanco) error
+	Delete(ncm *NomenclaturaBanco) error
 }
 
-func NewRepositoryNomenclatura(db Banco.IConexaoBanco) IRepositoryNomenclatura {
+func NewRepositoryNomenclatura(db *gorm.DB) IRepositoryNomenclatura {
 	return &repositoryNomenclatura{db}
 }
 
 func (repository *repositoryNomenclatura) Create(ncm *NomenclaturaBanco) error {
-	return repository.db.Conexao().Create(ncm).Error
+	return repository.db.Create(ncm).Error
 }
 
-func (repository *repositoryNomenclatura) GetAll() (*[]NomenclaturaBanco, error) {
-	var listaNomenclaturas []NomenclaturaBanco
-	err := repository.db.Conexao().Find(&listaNomenclaturas).Error
-	if err != nil {
-		var lista *[]NomenclaturaBanco
-		return lista, err
-	}
-	return &listaNomenclaturas, nil
+func (repository *repositoryNomenclatura) GetAll() ([]*NomenclaturaBanco, error) {
+	var listaNomenclaturas []*NomenclaturaBanco
+	err := repository.db.Find(&listaNomenclaturas).Error
+	return listaNomenclaturas, err
 }
 
 func (repository *repositoryNomenclatura) GetByCodigo(codigo string) (*NomenclaturaBanco, error) {
 	var nomenclatura NomenclaturaBanco
-	err := repository.db.Conexao().Find(&nomenclatura, codigo).Error
-	if err != nil {
-		return &NomenclaturaBanco{}, err
-	}
-	return &nomenclatura, nil
+	err := repository.db.Find(&nomenclatura, codigo).Error
+	return &nomenclatura, err
 }
 
 func (repository *repositoryNomenclatura) Update(ncm *NomenclaturaBanco) error {
-	return repository.db.Conexao().Updates(ncm).Error
+	return repository.db.Updates(ncm).Error
 }
 
-func (repository *repositoryNomenclatura) Delete(ncm *NcmBanco) error {
-	return repository.db.Conexao().Delete(ncm).Error
+func (repository *repositoryNomenclatura) Delete(ncm *NomenclaturaBanco) error {
+	return repository.db.Delete(ncm).Error
 }

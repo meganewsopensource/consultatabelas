@@ -1,7 +1,7 @@
 package NCM
 
 import (
-	"ConsultaTabelas/Banco"
+	"gorm.io/gorm"
 )
 
 type IRepositoryNCM interface {
@@ -13,50 +13,33 @@ type IRepositoryNCM interface {
 }
 
 type repositoryNCM struct {
-	db Banco.IConexaoBanco
+	db *gorm.DB
 }
 
-func NewRepositoryNCM(db Banco.IConexaoBanco) (IRepositoryNCM, error) {
-	err := db.Conexao().AutoMigrate(&NomenclaturaBanco{})
-	if err != nil {
-		return nil, err
-	}
-
-	err = db.Conexao().AutoMigrate(&NcmBanco{})
-	if err != nil {
-		return nil, err
-	}
-	return &repositoryNCM{db}, nil
+func NewRepositoryNCM(db *gorm.DB) IRepositoryNCM {
+	return &repositoryNCM{db}
 }
 
 func (repository *repositoryNCM) Create(ncm *NcmBanco) error {
-	return repository.db.Conexao().Create(ncm).Error
+	return repository.db.Create(ncm).Error
 }
 
 func (repository *repositoryNCM) GetAll() ([]*NcmBanco, error) {
 	var listaNcm []*NcmBanco
-	err := repository.db.Conexao().Find(&listaNcm).Error
-	if err != nil {
-		var lista []*NcmBanco
-		return lista, err
-	}
-	return listaNcm, nil
+	err := repository.db.Find(&listaNcm).Error
+	return listaNcm, err
 }
 
 func (repository *repositoryNCM) GetByID(id uint) (*NcmBanco, error) {
 	var ncmSelecionado NcmBanco
-	err := repository.db.Conexao().Find(&ncmSelecionado, id).Error
-	if err != nil {
-		ncm := NcmBanco{}
-		return &ncm, err
-	}
-	return &ncmSelecionado, nil
+	err := repository.db.Find(&ncmSelecionado, id).Error
+	return &ncmSelecionado, err
 }
 
 func (repository *repositoryNCM) Update(ncm *NcmBanco) error {
-	return repository.db.Conexao().Updates(ncm).Error
+	return repository.db.Updates(ncm).Error
 }
 
 func (repository *repositoryNCM) Delete(ncm *NcmBanco) error {
-	return repository.db.Conexao().Delete(ncm).Error
+	return repository.db.Delete(ncm).Error
 }
