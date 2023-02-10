@@ -85,7 +85,7 @@ func Test_repositoryNomenclatura_GetByCodigo(t *testing.T) {
 	if err != nil {
 		t.Errorf("GetByCodigo() error = %v ", err)
 	}
-	if (got.Codigo == nomenclatura.Codigo) && (got.AnoAto == nomenclatura.AnoAto) {
+	if (got.Codigo != nomenclatura.Codigo) || (got.AnoAto != nomenclatura.AnoAto) {
 		t.Errorf("Nomenclatura encontrada %v diferente da gravada %v", got, nomenclatura)
 	}
 	deletarBanco(conexao)
