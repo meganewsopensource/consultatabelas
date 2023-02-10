@@ -17,8 +17,16 @@ func gerarConexaoBanco() (*gorm.DB, error) {
 	return db, err
 }
 
-func deletarBanco() {
-	_ = os.Remove("gorm.db")
+func deletarBanco(db *gorm.DB) {
+	sqlDB, err := db.DB()
+	err = sqlDB.Close()
+	if err != nil {
+		panic(err)
+	}
+	err = os.Remove("gorm.db")
+	if err != nil {
+		panic(err)
+	}
 }
 
 func gerarNCMBanco() NcmBanco {
@@ -47,7 +55,7 @@ func TestNew(t *testing.T) {
 	if got := NewRepositoryNCM(conexao); !reflect.DeepEqual(got, repository) {
 		t.Errorf("Esperado %v, recebi %v", got, repository)
 	}
-	deletarBanco()
+	deletarBanco(conexao)
 }
 
 func Test_repositoryNCM_Create(t *testing.T) {
@@ -58,7 +66,8 @@ func Test_repositoryNCM_Create(t *testing.T) {
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao tentar gravar %v", err)
 	}
-	deletarBanco()
+
+	deletarBanco(conexao)
 }
 
 func Test_repositoryNCM_Delete(t *testing.T) {
@@ -70,7 +79,7 @@ func Test_repositoryNCM_Delete(t *testing.T) {
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao tentar deletar %v", err)
 	}
-	deletarBanco()
+	deletarBanco(conexao)
 }
 
 func Test_repositoryNCM_GetAll(t *testing.T) {
@@ -85,7 +94,7 @@ func Test_repositoryNCM_GetAll(t *testing.T) {
 	if len(lista) == 0 {
 		t.Errorf("Erro, a lista está vazia")
 	}
-	deletarBanco()
+	deletarBanco(conexao)
 }
 
 func Test_repositoryNCM_GetByCodigo(t *testing.T) {
@@ -101,7 +110,7 @@ func Test_repositoryNCM_GetByCodigo(t *testing.T) {
 	if !reflect.DeepEqual(ncmGravar.ID, ncm.ID) && !reflect.DeepEqual(ncmGravar.DataUltimaAtualizacaoNcm, ncm.DataUltimaAtualizacaoNcm) {
 		t.Errorf("Esperado %v, recebi %v", ncmGravar, ncm)
 	}
-	deletarBanco()
+	deletarBanco(conexao)
 }
 
 func Test_repositoryNCM_Update(t *testing.T) {
@@ -121,5 +130,5 @@ func Test_repositoryNCM_Update(t *testing.T) {
 	if !reflect.DeepEqual(data, ncm.DataUltimaAtualizacaoNcm) {
 		t.Errorf("Ocorreu um erro, a data esperada %s, data recebida %s", data, ncm.DataUltimaAtualizacaoNcm)
 	}
-	deletarBanco()
+	deletarBanco(conexao)
 }

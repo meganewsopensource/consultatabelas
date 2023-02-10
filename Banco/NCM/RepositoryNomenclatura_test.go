@@ -6,16 +6,6 @@ import (
 	"time"
 )
 
-func TestNewRepositoryNomenclatura(t *testing.T) {
-	conexao, _ := gerarConexaoBanco()
-	repository := NewRepositoryNomenclatura(conexao)
-
-	if got := NewRepositoryNomenclatura(conexao); !reflect.DeepEqual(got, repository) {
-		t.Errorf("NewRepositoryNomenclatura() = %v, want %v", got, repository)
-	}
-	deletarBanco()
-}
-
 func CriarNomenclatura() NomenclaturaBanco {
 	return NomenclaturaBanco{
 		Codigo:     "01",
@@ -28,6 +18,16 @@ func CriarNomenclatura() NomenclaturaBanco {
 	}
 }
 
+func TestNewRepositoryNomenclatura(t *testing.T) {
+	conexao, _ := gerarConexaoBanco()
+	repository := NewRepositoryNomenclatura(conexao)
+
+	if got := NewRepositoryNomenclatura(conexao); !reflect.DeepEqual(got, repository) {
+		t.Errorf("NewRepositoryNomenclatura() = %v, want %v", got, repository)
+	}
+	deletarBanco(conexao)
+}
+
 func Test_repositoryNomenclatura_Create(t *testing.T) {
 	conexao, _ := gerarConexaoBanco()
 	repository := &repositoryNomenclatura{
@@ -38,7 +38,7 @@ func Test_repositoryNomenclatura_Create(t *testing.T) {
 	if err != nil {
 		t.Errorf("Create() error = %v ", err)
 	}
-	deletarBanco()
+	deletarBanco(conexao)
 }
 
 func Test_repositoryNomenclatura_Delete(t *testing.T) {
@@ -52,7 +52,7 @@ func Test_repositoryNomenclatura_Delete(t *testing.T) {
 	if err != nil {
 		t.Errorf("Delete() error = %v ", err)
 	}
-	deletarBanco()
+	deletarBanco(conexao)
 }
 
 func Test_repositoryNomenclatura_GetAll(t *testing.T) {
@@ -70,7 +70,7 @@ func Test_repositoryNomenclatura_GetAll(t *testing.T) {
 	if len(lista) != 2 {
 		t.Errorf("A quantidade retornada não é  = %v ", err)
 	}
-	deletarBanco()
+	deletarBanco(conexao)
 }
 
 func Test_repositoryNomenclatura_GetByCodigo(t *testing.T) {
@@ -88,7 +88,7 @@ func Test_repositoryNomenclatura_GetByCodigo(t *testing.T) {
 	if (got.Codigo == nomenclatura.Codigo) && (got.AnoAto == nomenclatura.AnoAto) {
 		t.Errorf("Nomenclatura encontrada %v diferente da gravada %v", got, nomenclatura)
 	}
-	deletarBanco()
+	deletarBanco(conexao)
 }
 
 func Test_repositoryNomenclatura_Update(t *testing.T) {
@@ -108,5 +108,5 @@ func Test_repositoryNomenclatura_Update(t *testing.T) {
 	if nomenclaturaReturno.AnoAto != nomenclatura.AnoAto {
 		t.Errorf("Valor esperado %v, recebido %v", nomenclatura.AnoAto, nomenclaturaReturno.AnoAto)
 	}
-	deletarBanco()
+	deletarBanco(conexao)
 }
