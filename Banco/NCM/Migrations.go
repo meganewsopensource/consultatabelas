@@ -5,7 +5,7 @@ import (
 )
 
 type IMigration interface {
-	Executar() error
+	Executar() (err error)
 }
 
 type migration struct {
@@ -16,15 +16,8 @@ func NewMigration(db *gorm.DB) IMigration {
 	return &migration{db}
 }
 
-func (migra *migration) Executar() error {
-	err := migra.db.AutoMigrate(&NomenclaturaBanco{})
-	if err != nil {
-		return err
-	}
-
+func (migra *migration) Executar() (err error) {
+	err = migra.db.AutoMigrate(&NomenclaturaBanco{})
 	err = migra.db.AutoMigrate(&NcmBanco{})
-	if err != nil {
-		return err
-	}
-	return nil
+	return
 }
