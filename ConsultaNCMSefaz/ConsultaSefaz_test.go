@@ -1,4 +1,4 @@
-package ConsultaNCM
+package ConsultaNCMSefaz
 
 import (
 	"ConsultaTabelas/ConsultaHTTP"

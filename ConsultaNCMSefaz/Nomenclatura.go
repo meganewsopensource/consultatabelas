@@ -1,4 +1,4 @@
-package ConsultaNCM
+package ConsultaNCMSefaz
 
 type Nomenclatura struct {
 	Codigo     string `json:"Codigo"`

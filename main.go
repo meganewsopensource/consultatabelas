@@ -4,11 +4,11 @@ import (
 	"ConsultaTabelas/Banco/NCM"
 	"ConsultaTabelas/ConsultaHTTP"
 	"ConsultaTabelas/ConsultaNCM"
+	"ConsultaTabelas/ConsultaNCMSefaz"
 	"database/sql"
-	"fmt"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"strconv"
+	"log"
 )
 
 func main() {
@@ -28,10 +28,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	consultaHttp := ConsultaHTTP.New("https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json")
-	consulta := ConsultaNCM.New(consultaHttp)
-	ncm, _ := consulta.ConsultarNCM()
-	fmt.Println("Data do Arquivo : " + ncm.DataUltimaAtualizacaoNcm)
-	fmt.Println("Quantidade de nomenclaturas : " + strconv.Itoa(len(ncm.Nomenclaturas)))
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+	consulta := ConsultaNCM.NewConsultaNCM(consultaSefaz, repositoryNCM, repositoryNomenclatura)
+	err = consulta.AtualizarNCM()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
