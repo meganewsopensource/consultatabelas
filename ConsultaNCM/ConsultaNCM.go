@@ -63,17 +63,19 @@ func (consulta *consultaNCM) gravarNCM(ncm NCM.NcmBanco) error {
 
 	if resposta.ID == 1 {
 		resposta.DataUltimaAtualizacaoNcm = ncm.DataUltimaAtualizacaoNcm
+		resposta.Nomenclaturas = ncm.Nomenclaturas
 		err = consulta.respotoryNCM.Update(resposta)
-	} else {
-		err = consulta.respotoryNCM.Create(&ncm)
-	}
-
-	for _, ncm := range ncm.Nomenclaturas {
-		err = consulta.repositoryNomenclatura.Create(&ncm)
 		if err != nil {
-			break
+			panic(err)
+		}
+	} else {
+		ncm.ID = 1
+		err = consulta.respotoryNCM.Create(&ncm)
+		if err != nil {
+			panic(err)
 		}
 	}
+
 	return err
 }
 

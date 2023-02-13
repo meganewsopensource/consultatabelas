@@ -2,6 +2,7 @@ package NCM
 
 import (
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type IRepositoryNCM interface {
@@ -21,7 +22,25 @@ func NewRepositoryNCM(db *gorm.DB) IRepositoryNCM {
 }
 
 func (repository *repositoryNCM) Create(ncm *NcmBanco) error {
-	return repository.db.Create(ncm).Error
+	transacao := repository.db.Begin()
+
+	err := repository.db.Create(ncm).Error
+	if err != nil {
+		transacao.Rollback()
+		return err
+	}
+
+	for _, nomenclatura := range ncm.Nomenclaturas {
+		err = repository.db.Create(nomenclatura).Error
+		if err != nil {
+			transacao.Rollback()
+			break
+		}
+	}
+
+	transacao.Commit()
+
+	return err
 }
 
 func (repository *repositoryNCM) GetAll() ([]*NcmBanco, error) {
@@ -37,7 +56,26 @@ func (repository *repositoryNCM) GetByID(id uint) (*NcmBanco, error) {
 }
 
 func (repository *repositoryNCM) Update(ncm *NcmBanco) error {
-	return repository.db.Updates(ncm).Error
+	transacao := repository.db.Begin()
+	err := repository.db.Updates(ncm).Error
+	if err != nil {
+		transacao.Rollback()
+		return err
+	}
+
+	for _, nomenclatura := range ncm.Nomenclaturas {
+		err = repository.db.Table("nomenclatura_bancos").Clauses(clause.OnConflict{
+			UpdateAll: true,
+		}).Create(nomenclatura).Error
+		if err != nil {
+			transacao.Rollback()
+			break
+		}
+	}
+
+	transacao.Commit()
+
+	return err
 }
 
 func (repository *repositoryNCM) Delete(ncm *NcmBanco) error {
