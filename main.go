@@ -5,6 +5,7 @@ import (
 	"ConsultaTabelas/ConsultaHTTP"
 	"ConsultaTabelas/ConsultaNCM"
 	"ConsultaTabelas/ConsultaNCMSefaz"
+	"ConsultaTabelas/LeituraVariaveis"
 	"database/sql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -12,7 +13,8 @@ import (
 )
 
 func main() {
-	sqlDB, err := sql.Open("pgx", "postgres://admin:admin@localhost:5432/tabelas")
+	variaveis := LeituraVariaveis.NewLeVariavelAmbiente()
+	sqlDB, err := sql.Open("pgx", variaveis.ConnectionString())
 	if err != nil {
 		panic(err)
 	}
@@ -29,7 +31,7 @@ func main() {
 		panic(err)
 	}
 
-	consultaHttp := ConsultaHTTP.New("https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json")
+	consultaHttp := ConsultaHTTP.New(variaveis.ConnectionHttp())
 	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
 	repositoryNCM := NCM.NewRepositoryNCM(db)
 	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)

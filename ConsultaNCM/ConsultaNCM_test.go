@@ -19,7 +19,7 @@ import (
 func gerarConexaoBanco() (*gorm.DB, error) {
 	db, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
 	migracao := NCM.NewMigration(db)
-	migracao.Executar()
+	_ = migracao.Executar()
 	return db, err
 }
 
@@ -76,13 +76,18 @@ func preencheNomenclaturas() []ConsultaNCMSefaz.Nomenclatura {
 
 func TestNewConsultaNCM(t *testing.T) {
 	server := criarServidor()
-	defer server.Close()
-	consultaHttp := ConsultaHTTP.New(server.URL)
-	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
 	db, err := gerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+
 	repositoryNCM := NCM.NewRepositoryNCM(db)
 	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
 	consulta := NewConsultaNCM(consultaSefaz, repositoryNCM, repositoryNomenclatura)
@@ -90,19 +95,23 @@ func TestNewConsultaNCM(t *testing.T) {
 	if got := NewConsultaNCM(consultaSefaz, repositoryNCM, repositoryNomenclatura); !reflect.DeepEqual(got, consulta) {
 		t.Errorf("ConsultaNCM() = %v, diferente de %v", got, consulta)
 	}
-
-	deletarBanco(db)
 }
 
 func Test_consultaNCM_AtualizarNCM(t *testing.T) {
 	server := criarServidor()
-	defer server.Close()
-	consultaHttp := ConsultaHTTP.New(server.URL)
-	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
 	db, err := gerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
+
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+
 	repositoryNCM := NCM.NewRepositoryNCM(db)
 	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
 	consulta := NewConsultaNCM(consultaSefaz, repositoryNCM, repositoryNomenclatura)
@@ -115,13 +124,17 @@ func Test_consultaNCM_AtualizarNCM(t *testing.T) {
 
 func Test_consultaNCM_gravarNCM(t *testing.T) {
 	server := criarServidor()
-	defer server.Close()
-	consultaHttp := ConsultaHTTP.New(server.URL)
-	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
 	db, err := gerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
 	repositoryNCM := NCM.NewRepositoryNCM(db)
 	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
 
@@ -149,41 +162,133 @@ func Test_consultaNCM_gravarNCM(t *testing.T) {
 	}
 }
 
+func Test_consultaNCM_listaNomenclaturaDataInicialErrada(t *testing.T) {
+	server := criarServidor()
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "01/02/2006",
+	}
+
+	listaNcm := []ConsultaNCMSefaz.Nomenclatura{}
+	listaNcm = append(listaNcm, ConsultaNCMSefaz.Nomenclatura{
+		Codigo:     "01",
+		Descricao:  "teste 01",
+		DataInicio: "2023/01/02",
+		DataFim:    "01/02/2023",
+		TipoAto:    "Teste de ato",
+		NumeroAto:  "25",
+		AnoAto:     "2021",
+	})
+
+	lista, err := consulta.listaNomenclatura(listaNcm)
+	if err == nil {
+		t.Errorf("Não ocorreu um erro ao preencher a lista")
+	}
+
+	if len(lista) > 0 {
+		t.Errorf("Valor da lista retornado não é válido : %v", err)
+	}
+}
+
+func Test_consultaNCM_listaNomenclaturaDataFinalErrada(t *testing.T) {
+	server := criarServidor()
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "01/02/2006",
+	}
+
+	listaNcm := []ConsultaNCMSefaz.Nomenclatura{}
+	listaNcm = append(listaNcm, ConsultaNCMSefaz.Nomenclatura{
+		Codigo:     "01",
+		Descricao:  "teste 01",
+		DataInicio: "01/02/2023",
+		DataFim:    "2026/02/01",
+		TipoAto:    "Teste de ato",
+		NumeroAto:  "25",
+		AnoAto:     "2021",
+	})
+
+	_, err = consulta.listaNomenclatura(listaNcm)
+	if err == nil {
+		t.Errorf("Não ocorreu um erro ao preencher a lista")
+	}
+}
+
 func Test_consultaNCM_listaNomenclatura(t *testing.T) {
-	type fields struct {
-		consultaSefaz          ConsultaNCMSefaz.IConsultaSefaz
-		respotoryNCM           NCM.IRepositoryNCM
-		repositoryNomenclatura NCM.IRepositoryNomenclatura
-		modeloData             string
+	server := criarServidor()
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
-	type args struct {
-		listaNCM []ConsultaNCMSefaz.Nomenclatura
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "02/01/2006",
 	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []NCM.NomenclaturaBanco
-		wantErr bool
-	}{
-		// TODO: Add test cases.
+
+	listaNcm := []ConsultaNCMSefaz.Nomenclatura{}
+	listaNcm = append(listaNcm, ConsultaNCMSefaz.Nomenclatura{
+		Codigo:     "01",
+		Descricao:  "teste 01",
+		DataInicio: "01/02/2023",
+		DataFim:    "31/12/2023",
+		TipoAto:    "Teste de ato",
+		NumeroAto:  "25",
+		AnoAto:     "2021",
+	})
+
+	lista, err := consulta.listaNomenclatura(listaNcm)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao listar %v", err)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			consulta := &consultaNCM{
-				consultaSefaz:          tt.fields.consultaSefaz,
-				respotoryNCM:           tt.fields.respotoryNCM,
-				repositoryNomenclatura: tt.fields.repositoryNomenclatura,
-				modeloData:             tt.fields.modeloData,
-			}
-			got, err := consulta.listaNomenclatura(tt.args.listaNCM)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("listaNomenclatura() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("listaNomenclatura() got = %v, want %v", got, tt.want)
-			}
-		})
+
+	if len(lista) != 1 {
+		t.Errorf("A quantidade de registros retornados não é igual a um. ")
 	}
 }
