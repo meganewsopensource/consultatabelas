@@ -12,7 +12,7 @@ type repositoryNomenclatura struct {
 type IRepositoryNomenclatura interface {
 	Create(ncm *NomenclaturaBanco) error
 	GetAll() ([]*NomenclaturaBanco, error)
-	GetByCodigo(codigo string) (*NomenclaturaBanco, error)
+	GetByData(data time.Time) ([]*NomenclaturaBanco, error)
 	Update(ncm *NomenclaturaBanco) error
 	Delete(ncm *NomenclaturaBanco) error
 }
@@ -31,10 +31,10 @@ func (repository *repositoryNomenclatura) GetAll() ([]*NomenclaturaBanco, error)
 	return listaNomenclaturas, err
 }
 
-func (repository *repositoryNomenclatura) GetByCodigo(codigo string) (*NomenclaturaBanco, error) {
-	var nomenclatura NomenclaturaBanco
-	err := repository.db.Find(&nomenclatura, codigo).Error
-	return &nomenclatura, err
+func (repository *repositoryNomenclatura) GetByData(data time.Time) ([]*NomenclaturaBanco, error) {
+	var nomenclatura []*NomenclaturaBanco
+	err := repository.db.Where("data_ultima_atualizacao_ncm = ?", data).Find(&nomenclatura).Error
+	return nomenclatura, err
 }
 
 func (repository *repositoryNomenclatura) Update(ncm *NomenclaturaBanco) error {

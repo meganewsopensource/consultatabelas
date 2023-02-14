@@ -9,6 +9,8 @@ import (
 type IConsultaNCM interface {
 	AtualizarNCM() error
 	ListarNCMs() ([]*NCM.NomenclaturaBanco, error)
+	UltimaAtualizacao() (time.Time, error)
+	ListarNCMPorData(data string) ([]*NCM.NomenclaturaBanco, error)
 }
 
 type consultaNCM struct {
@@ -40,7 +42,7 @@ func (consulta *consultaNCM) AtualizarNCM() error {
 	}
 	data, err := time.Parse(consulta.modeloData, dadosConsulta.DataUltimaAtualizacaoNcm)
 	if data.After(ncm.DataUltimaAtualizacaoNcm) {
-		lista, erro := consulta.listaNomenclatura(dadosConsulta.Nomenclaturas)
+		lista, erro := consulta.listaNomenclatura(dadosConsulta)
 		if erro != nil {
 			return err
 		}
@@ -81,9 +83,9 @@ func (consulta *consultaNCM) gravarNCM(ncm NCM.NcmBanco) error {
 	return err
 }
 
-func (consulta *consultaNCM) listaNomenclatura(listaNCM []ConsultaNCMSefaz.Nomenclatura) ([]NCM.NomenclaturaBanco, error) {
+func (consulta *consultaNCM) listaNomenclatura(listaNCM ConsultaNCMSefaz.NcmReceita) ([]NCM.NomenclaturaBanco, error) {
 	var lista []NCM.NomenclaturaBanco
-	for _, nomenclatura := range listaNCM {
+	for _, nomenclatura := range listaNCM.Nomenclaturas {
 		dataInicial, err := time.Parse(consulta.modeloData, nomenclatura.DataInicio)
 		if err != nil {
 			return nil, err
@@ -92,14 +94,19 @@ func (consulta *consultaNCM) listaNomenclatura(listaNCM []ConsultaNCMSefaz.Nomen
 		if err != nil {
 			return nil, err
 		}
+		dataAtualizacao, err := time.Parse(consulta.modeloData, listaNCM.DataUltimaAtualizacaoNcm)
+		if err != nil {
+			return nil, err
+		}
 		lista = append(lista, NCM.NomenclaturaBanco{
-			Codigo:     nomenclatura.Codigo,
-			Descricao:  nomenclatura.Descricao,
-			DataInicio: dataInicial,
-			DataFim:    dataFinal,
-			TipoAto:    nomenclatura.TipoAto,
-			NumeroAto:  nomenclatura.NumeroAto,
-			AnoAto:     nomenclatura.AnoAto,
+			Codigo:                   nomenclatura.Codigo,
+			Descricao:                nomenclatura.Descricao,
+			DataInicio:               dataInicial,
+			DataFim:                  dataFinal,
+			TipoAto:                  nomenclatura.TipoAto,
+			NumeroAto:                nomenclatura.NumeroAto,
+			AnoAto:                   nomenclatura.AnoAto,
+			DataUltimaAtualizacaoNcm: dataAtualizacao,
 		})
 	}
 	return lista, nil
@@ -107,6 +114,26 @@ func (consulta *consultaNCM) listaNomenclatura(listaNCM []ConsultaNCMSefaz.Nomen
 
 func (consulta *consultaNCM) ListarNCMs() ([]*NCM.NomenclaturaBanco, error) {
 	lista, err := consulta.repositoryNomenclatura.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	return lista, nil
+}
+
+func (consulta *consultaNCM) UltimaAtualizacao() (time.Time, error) {
+	ncm, err := consulta.respotoryNCM.GetByID(1)
+	if err != nil {
+		return time.Now(), err
+	}
+	return ncm.DataUltimaAtualizacaoNcm, nil
+}
+
+func (consulta *consultaNCM) ListarNCMPorData(data string) ([]*NCM.NomenclaturaBanco, error) {
+	dataConvertida, err := time.Parse("02-01-2006", data)
+	if err != nil {
+		return nil, err
+	}
+	lista, err := consulta.repositoryNomenclatura.GetByData(dataConvertida)
 	if err != nil {
 		return nil, err
 	}

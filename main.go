@@ -45,8 +45,8 @@ func main() {
 	{
 		public.POST("AtualizarNCM", controllerNcm.AtualizarNCM)
 		public.GET("ncms", controllerNcm.ListarNCMS)
-		public.GET("ncms/")
-		public.GET("atualizacoes/ultima", controllerNcm.AtualizarNCM)
+		public.GET("ncms/:data", controllerNcm.ListarNCMPorData)
+		public.GET("atualizacoes/ultima", controllerNcm.DataUltimaAtualizacao)
 
 		public.GET("saude", func(c *gin.Context) {
 			sqlDB, err := db.DB()
