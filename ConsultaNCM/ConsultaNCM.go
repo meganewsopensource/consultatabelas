@@ -8,6 +8,7 @@ import (
 
 type IConsultaNCM interface {
 	AtualizarNCM() error
+	ListarNCMs() ([]*NCM.NomenclaturaBanco, error)
 }
 
 type consultaNCM struct {
@@ -67,7 +68,7 @@ func (consulta *consultaNCM) gravarNCM(ncm NCM.NcmBanco) error {
 		resposta.Nomenclaturas = ncm.Nomenclaturas
 		err = consulta.respotoryNCM.Update(resposta)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	} else {
 		ncm.ID = 1
@@ -100,6 +101,14 @@ func (consulta *consultaNCM) listaNomenclatura(listaNCM []ConsultaNCMSefaz.Nomen
 			NumeroAto:  nomenclatura.NumeroAto,
 			AnoAto:     nomenclatura.AnoAto,
 		})
+	}
+	return lista, nil
+}
+
+func (consulta *consultaNCM) ListarNCMs() ([]*NCM.NomenclaturaBanco, error) {
+	lista, err := consulta.repositoryNomenclatura.GetAll()
+	if err != nil {
+		return nil, err
 	}
 	return lista, nil
 }

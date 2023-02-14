@@ -43,7 +43,10 @@ func main() {
 
 	public := r.Group("/")
 	{
-		public.GET("AtualizarNCM", controllerNcm.AtualizarNCM)
+		public.POST("AtualizarNCM", controllerNcm.AtualizarNCM)
+		public.GET("ncms", controllerNcm.ListarNCMS)
+		public.GET("ncms/")
+		public.GET("atualizacoes/ultima", controllerNcm.AtualizarNCM)
 
 		public.GET("saude", func(c *gin.Context) {
 			sqlDB, err := db.DB()

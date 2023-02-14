@@ -2,6 +2,7 @@ package NCM
 
 import (
 	"gorm.io/gorm"
+	"time"
 )
 
 type repositoryNomenclatura struct {
@@ -26,7 +27,7 @@ func (repository *repositoryNomenclatura) Create(ncm *NomenclaturaBanco) error {
 
 func (repository *repositoryNomenclatura) GetAll() ([]*NomenclaturaBanco, error) {
 	var listaNomenclaturas []*NomenclaturaBanco
-	err := repository.db.Find(&listaNomenclaturas).Error
+	err := repository.db.Where("data_fim > ? and  ? >= data_inicio ", time.Now(), time.Now()).Find(&listaNomenclaturas).Error
 	return listaNomenclaturas, err
 }
 

@@ -36,14 +36,6 @@ func (repository *repositoryNCM) Create(ncm *NcmBanco) error {
 		return err
 	}
 
-	//for _, nomenclatura := range ncm.Nomenclaturas {
-	//	err = repository.db.Create(nomenclatura).Error
-	//	if err != nil {
-	//		transacao.Rollback()
-	//		break
-	//	}
-	//}
-
 	transacao.Commit()
 
 	return err
@@ -63,20 +55,17 @@ func (repository *repositoryNCM) GetByID(id uint) (*NcmBanco, error) {
 
 func (repository *repositoryNCM) Update(ncm *NcmBanco) error {
 	transacao := repository.db.Begin()
-	err := repository.db.Updates(ncm).Error
+	err := transacao.Updates(ncm).Error
 	if err != nil {
 		transacao.Rollback()
 		return err
 	}
 
-	for _, nomenclatura := range ncm.Nomenclaturas {
-		err = repository.db.Table("nomenclatura_bancos").Clauses(clause.OnConflict{
-			UpdateAll: true,
-		}).Create(nomenclatura).Error
-		if err != nil {
-			transacao.Rollback()
-			break
-		}
+	err = transacao.Table("nomenclatura_bancos").Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).CreateInBatches(ncm.Nomenclaturas, 1000).Error
+	if err != nil {
+		transacao.Rollback()
 	}
 
 	transacao.Commit()
