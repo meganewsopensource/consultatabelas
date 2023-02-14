@@ -24,19 +24,25 @@ func NewRepositoryNCM(db *gorm.DB) IRepositoryNCM {
 func (repository *repositoryNCM) Create(ncm *NcmBanco) error {
 	transacao := repository.db.Begin()
 
-	err := repository.db.Create(ncm).Error
+	err := transacao.Create(ncm).Error
 	if err != nil {
 		transacao.Rollback()
 		return err
 	}
 
-	for _, nomenclatura := range ncm.Nomenclaturas {
-		err = repository.db.Create(nomenclatura).Error
-		if err != nil {
-			transacao.Rollback()
-			break
-		}
+	err = transacao.CreateInBatches(ncm.Nomenclaturas, 1000).Error
+	if err != nil {
+		transacao.Rollback()
+		return err
 	}
+
+	//for _, nomenclatura := range ncm.Nomenclaturas {
+	//	err = repository.db.Create(nomenclatura).Error
+	//	if err != nil {
+	//		transacao.Rollback()
+	//		break
+	//	}
+	//}
 
 	transacao.Commit()
 

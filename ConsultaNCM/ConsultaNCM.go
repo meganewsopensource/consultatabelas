@@ -39,8 +39,8 @@ func (consulta *consultaNCM) AtualizarNCM() error {
 	}
 	data, err := time.Parse(consulta.modeloData, dadosConsulta.DataUltimaAtualizacaoNcm)
 	if data.After(ncm.DataUltimaAtualizacaoNcm) {
-		lista, err := consulta.listaNomenclatura(dadosConsulta.Nomenclaturas)
-		if err != nil {
+		lista, erro := consulta.listaNomenclatura(dadosConsulta.Nomenclaturas)
+		if erro != nil {
 			return err
 		}
 		ncmBanco := NCM.NcmBanco{
@@ -48,7 +48,8 @@ func (consulta *consultaNCM) AtualizarNCM() error {
 			DataUltimaAtualizacaoNcm: data,
 			Nomenclaturas:            lista,
 		}
-		err = consulta.gravarNCM(ncmBanco)
+		erro = consulta.gravarNCM(ncmBanco)
+		err = erro
 	}
 	return err
 }
@@ -72,7 +73,7 @@ func (consulta *consultaNCM) gravarNCM(ncm NCM.NcmBanco) error {
 		ncm.ID = 1
 		err = consulta.respotoryNCM.Create(&ncm)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
 
