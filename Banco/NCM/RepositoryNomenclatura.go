@@ -13,6 +13,7 @@ type IRepositoryNomenclatura interface {
 	Create(ncm *NomenclaturaBanco) error
 	GetAll() ([]*NomenclaturaBanco, error)
 	GetByData(data time.Time) ([]*NomenclaturaBanco, error)
+	GetByCodigo(codigo string) (NomenclaturaBanco, error)
 	Update(ncm *NomenclaturaBanco) error
 	Delete(ncm *NomenclaturaBanco) error
 }
@@ -43,4 +44,10 @@ func (repository *repositoryNomenclatura) Update(ncm *NomenclaturaBanco) error {
 
 func (repository *repositoryNomenclatura) Delete(ncm *NomenclaturaBanco) error {
 	return repository.db.Delete(ncm).Error
+}
+
+func (repository *repositoryNomenclatura) GetByCodigo(codigo string) (NomenclaturaBanco, error) {
+	var ncm NomenclaturaBanco
+	err := repository.db.Find(&ncm, codigo).Error
+	return ncm, err
 }

@@ -145,7 +145,7 @@ func Test_consultaNCM_gravarNCM(t *testing.T) {
 		modeloData:             "02/01/2006",
 	}
 	ncm := preencheNcmReceita()
-	lista, err := consulta.listaNomenclatura(ncm.Nomenclaturas)
+	lista, err := consulta.listaNomenclatura(ncm)
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
 	}
@@ -197,7 +197,12 @@ func Test_consultaNCM_listaNomenclaturaDataInicialErrada(t *testing.T) {
 		AnoAto:     "2021",
 	})
 
-	lista, err := consulta.listaNomenclatura(listaNcm)
+	ncm := ConsultaNCMSefaz.NcmReceita{
+		DataUltimaAtualizacaoNcm: "01/01/2023",
+		Nomenclaturas:            listaNcm,
+	}
+
+	lista, err := consulta.listaNomenclatura(ncm)
 	if err == nil {
 		t.Errorf("Não ocorreu um erro ao preencher a lista")
 	}
@@ -242,7 +247,12 @@ func Test_consultaNCM_listaNomenclaturaDataFinalErrada(t *testing.T) {
 		AnoAto:     "2021",
 	})
 
-	_, err = consulta.listaNomenclatura(listaNcm)
+	ncm := ConsultaNCMSefaz.NcmReceita{
+		DataUltimaAtualizacaoNcm: "01/01/2023",
+		Nomenclaturas:            listaNcm,
+	}
+
+	_, err = consulta.listaNomenclatura(ncm)
 	if err == nil {
 		t.Errorf("Não ocorreu um erro ao preencher a lista")
 	}
@@ -283,7 +293,11 @@ func Test_consultaNCM_listaNomenclatura(t *testing.T) {
 		AnoAto:     "2021",
 	})
 
-	lista, err := consulta.listaNomenclatura(listaNcm)
+	ncm := ConsultaNCMSefaz.NcmReceita{
+		DataUltimaAtualizacaoNcm: "01/01/2023",
+		Nomenclaturas:            listaNcm,
+	}
+	lista, err := consulta.listaNomenclatura(ncm)
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao listar %v", err)
 	}

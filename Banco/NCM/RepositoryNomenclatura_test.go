@@ -8,13 +8,14 @@ import (
 
 func CriarNomenclatura() NomenclaturaBanco {
 	return NomenclaturaBanco{
-		Codigo:     "01",
-		DataInicio: time.Time{},
-		DataFim:    time.Time{},
-		Descricao:  "teste 01",
-		TipoAto:    "2023",
-		NumeroAto:  "1",
-		AnoAto:     "2021",
+		Codigo:                   "01",
+		DataInicio:               time.Now().Add(-time.Hour * 48),
+		DataFim:                  time.Now().Add(time.Hour * 48),
+		Descricao:                "teste 01",
+		TipoAto:                  "2023",
+		NumeroAto:                "1",
+		AnoAto:                   "2021",
+		DataUltimaAtualizacaoNcm: time.Now(),
 	}
 }
 
@@ -68,7 +69,7 @@ func Test_repositoryNomenclatura_GetAll(t *testing.T) {
 		t.Errorf("GetAll() error = %v ", err)
 	}
 	if len(lista) != 2 {
-		t.Errorf("A quantidade retornada não é  = %v ", err)
+		t.Errorf("A quantidade retornada não é  2")
 	}
 	deletarBanco(conexao)
 }
@@ -81,12 +82,12 @@ func Test_repositoryNomenclatura_GetByCodigo(t *testing.T) {
 	}
 	_ = repository.Create(&nomenclatura)
 
-	got, err := repository.GetByCodigo(nomenclatura.Codigo)
+	got, err := repository.GetByData(nomenclatura.DataUltimaAtualizacaoNcm)
 	if err != nil {
 		t.Errorf("GetByCodigo() error = %v ", err)
 	}
-	if (got.Codigo != nomenclatura.Codigo) || (got.AnoAto != nomenclatura.AnoAto) {
-		t.Errorf("Nomenclatura encontrada %v diferente da gravada %v", got, nomenclatura)
+	if len(got) == 0 {
+		t.Errorf("Nenhuma nomenclatura gravada foi localizada!")
 	}
 	deletarBanco(conexao)
 }

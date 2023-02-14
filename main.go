@@ -22,7 +22,12 @@ func main() {
 	}
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: sqlDB,
-	}), &gorm.Config{})
+	}), &gorm.Config{
+		//NowFunc: func() time.Time {
+		//	utc, _ := time.LoadLocation("America/Sao_Paulo")
+		//	return time.Now().In(utc)
+		//},
+	})
 	if err != nil {
 		panic(err)
 	}

@@ -40,6 +40,10 @@ func (consulta *consultaNCM) AtualizarNCM() error {
 	if err != nil {
 		return err
 	}
+	time.Local, err = time.LoadLocation("America/Sao_Paulo")
+	if err != nil {
+		return err
+	}
 	data, err := time.Parse(consulta.modeloData, dadosConsulta.DataUltimaAtualizacaoNcm)
 	if data.After(ncm.DataUltimaAtualizacaoNcm) {
 		lista, erro := consulta.listaNomenclatura(dadosConsulta)
