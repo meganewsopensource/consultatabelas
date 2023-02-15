@@ -63,6 +63,7 @@ func main() {
 		})
 	}
 
+	runCronJobs(consulta.AtualizarNCM, variaveis.CronExpression())
 	r.Run()
 }
 
@@ -79,4 +80,9 @@ func ConfigurarGin() *gin.Engine {
 	}))
 
 	return r
+}
+
+func runCronJobs(consulta func() error, cronExpression string) {
+	cron := ConsultaNCM.NewCronJob(cronExpression)
+	cron.ConfigurarCron(consulta)
 }

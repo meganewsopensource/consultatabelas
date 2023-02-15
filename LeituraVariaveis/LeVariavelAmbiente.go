@@ -12,6 +12,7 @@ type leVariavelAmbiente struct {
 type IVariavelAmbiente interface {
 	ConnectionString() string
 	ConnectionHttp() string
+	CronExpression() string
 }
 
 func NewLeVariavelAmbiente() IVariavelAmbiente {
@@ -31,4 +32,8 @@ func (variavel *leVariavelAmbiente) ConnectionString() string {
 
 func (variavel *leVariavelAmbiente) ConnectionHttp() string {
 	return os.Getenv("CONNHTTP")
+}
+
+func (variavel *leVariavelAmbiente) CronExpression() string {
+	return os.Getenv("CRONEXPRESSION")
 }

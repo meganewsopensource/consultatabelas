@@ -19,5 +19,6 @@ COPY --from=builder /app/main .
 ENV TZ="America/Bahia"
 ENV CONNHTTP = https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json
 ENV CONNSTRING=postgres://admin:admin@localhost:5432/tabelas
+ENV CRONEXPRESSION="* * * * *"
 
 CMD ["./main"]
