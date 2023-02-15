@@ -2,6 +2,7 @@ package Web
 
 import (
 	"ConsultaTabelas/ConsultaNCM"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -27,7 +28,7 @@ type IControllerNCM interface {
 func (controller *controllerNCM) AtualizarNCM(context *gin.Context) {
 	err := controller.consulta.AtualizarNCM()
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, "Não foi possivel atualiza os dados de NCM!")
+		context.JSON(http.StatusInternalServerError, fmt.Sprintf("Não foi possivel atualiza os dados de NCM! Erro : %v", err))
 	} else {
 		context.JSON(http.StatusOK, "Os dados de NCM foram atualizados!")
 	}

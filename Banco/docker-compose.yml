@@ -8,21 +8,9 @@ services:
       POSTGRES_PASSWORD: admin
       POSTGRES_USER: admin
       POSTGRES_DB: tabelas
-      TZ: Africa/Accra
+      TZ: America/Bahia
     ports:
       - '5432:5432'
     expose:
       - '5432'
-  app:
-    build: ../.
-    restart: always
-    depends_on:
-      - postgresdb
-    environment:
-      CONNSTRING: "postgres://admin:admin@postgres:5432/tabelas"
-      CONNHTTP: "https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json"
-    ports:
-      - '8080:8080'
-    expose:
-      - '8080'
 
