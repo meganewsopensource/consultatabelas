@@ -10,8 +10,11 @@ import (
 	"database/sql"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"net/http"
+	"os"
 )
 
 func main() {
@@ -47,7 +50,6 @@ func main() {
 		public.GET("ncms", controllerNcm.ListarNCMS)
 		public.GET("ncms/:data", controllerNcm.ListarNCMPorData)
 		public.GET("atualizacoes/ultima", controllerNcm.DataUltimaAtualizacao)
-
 		public.GET("saude", func(c *gin.Context) {
 			sqlDB, err := db.DB()
 			if err != nil {
@@ -62,6 +64,15 @@ func main() {
 			c.JSON(200, "Healthy")
 		})
 	}
+
+	http.Handle("/metrics", promhttp.Handler())
+
+	go func() {
+		err := http.ListenAndServe(":9090", nil)
+		if err != nil {
+			os.Exit(1)
+		}
+	}()
 
 	runCronJobs(consulta.AtualizarNCM, variaveis.CronExpression())
 	r.Run()
