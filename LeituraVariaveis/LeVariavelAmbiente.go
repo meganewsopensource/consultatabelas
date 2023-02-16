@@ -2,7 +2,6 @@ package LeituraVariaveis
 
 import (
 	"github.com/joho/godotenv"
-	"log"
 	"os"
 )
 
@@ -15,15 +14,13 @@ type IVariavelAmbiente interface {
 	CronExpression() string
 }
 
-func NewLeVariavelAmbiente() IVariavelAmbiente {
-	if _, err := os.Stat(".env"); err == nil {
-		err := godotenv.Load(".env")
-		if err != nil {
-			log.Fatal(err)
-		}
+func NewLeVariavelAmbiente(nomeArquivo string) (IVariavelAmbiente, error) {
+	var err error
+	if _, err = os.Stat(nomeArquivo); err == nil {
+		err = godotenv.Load(nomeArquivo)
 	}
 
-	return &leVariavelAmbiente{}
+	return &leVariavelAmbiente{}, err
 }
 
 func (variavel *leVariavelAmbiente) ConnectionString() string {
