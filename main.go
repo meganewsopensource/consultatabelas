@@ -1,20 +1,41 @@
 package main
 
 import (
+	"ConsultaTabelas/Banco"
 	"ConsultaTabelas/Banco/NCM"
 	"ConsultaTabelas/ConsultaHTTP"
 	"ConsultaTabelas/ConsultaNCM"
 	"ConsultaTabelas/ConsultaNCMSefaz"
 	"ConsultaTabelas/LeituraVariaveis"
 	"ConsultaTabelas/Web"
+	_ "ConsultaTabelas/docs"
 	"database/sql"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
+// @title Consulta Tabelas
+// @version 1.0
+// @description Testing Swagger APIs.
+// @termsOfService http://swagger.io/terms/// @contact.name API Support
+
+// @contact.name API Support
+// @contact.url http://www.swagger.io/support
+// @contact.email support@swagger.io// @securityDefinitions.apiKey JWT
+
+// @in header
+// @name token// @license.name Apache 2.0
+
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html// @host localhost:8081
+
+// @BasePath /
+
+// @schemes http
 func main() {
 	variaveis := LeituraVariaveis.NewLeVariavelAmbiente()
 	sqlDB, err := sql.Open("pgx", variaveis.ConnectionString())
@@ -42,6 +63,10 @@ func main() {
 	r := ConfigurarGin()
 	controllerNcm := Web.NewControllerNCM(consulta)
 
+	repositorySaude := NCM.NewRepositorySaude(db)
+	verificaSaude := Banco.NewVerificaSaudeBanco(repositorySaude)
+	controllerSaude := Web.NewControllerSaude(verificaSaude)
+
 	public := r.Group("/")
 	{
 		public.POST("AtualizarNCM", controllerNcm.AtualizarNCM)
@@ -49,19 +74,8 @@ func main() {
 		public.GET("ncms/:data", controllerNcm.ListarNCMPorData)
 		public.GET("atualizacoes/ultima", controllerNcm.DataUltimaAtualizacao)
 		public.GET("metrics", prometheusHandler())
-		public.GET("saude", func(c *gin.Context) {
-			sqlDB, err := db.DB()
-			if err != nil {
-				c.JSON(512, "Unhealthy")
-				return
-			}
-			err = sqlDB.Ping()
-			if err != nil {
-				c.JSON(512, "Unhealthy")
-				return
-			}
-			c.JSON(200, "Healthy")
-		})
+		public.GET("swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		public.GET("saude", controllerSaude.VerificarSaude)
 	}
 
 	runCronJobs(consulta.AtualizarNCM, variaveis.CronExpression())
@@ -74,7 +88,7 @@ func ConfigurarGin() *gin.Engine {
 	r.Use(gin.Recovery())
 
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:4200"},
+		AllowAllOrigins:  true,
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
 		AllowCredentials: true,
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "username", "login", "senha", "Access-Control-Allow-Credentials"},
