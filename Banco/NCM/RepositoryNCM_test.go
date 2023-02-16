@@ -11,10 +11,14 @@ import (
 )
 
 func gerarConexaoBanco() (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
+	db, err := gerarConexaoBancoSemMigration()
 	migracao := NewMigration(db)
 	migracao.Executar()
 	return db, err
+}
+
+func gerarConexaoBancoSemMigration() (*gorm.DB, error) {
+	return gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
 }
 
 func deletarBanco(db *gorm.DB) {
@@ -65,6 +69,37 @@ func Test_repositoryNCM_Create(t *testing.T) {
 	err := repository.Create(&ncmGravar)
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao tentar gravar %v", err)
+	}
+
+	deletarBanco(conexao)
+}
+
+func Test_repositoryNCM_Create_FailNCM(t *testing.T) {
+	conexao, _ := gerarConexaoBancoSemMigration()
+	repository := NewRepositoryNCM(conexao)
+	var ncmGravar NcmBanco
+	ncmGravar = NcmBanco{}
+	err := repository.Create(&ncmGravar)
+	if err == nil {
+		t.Errorf("Não ocorreu um erro esperado ao tentar gravar %v", err)
+	}
+
+	deletarBanco(conexao)
+}
+
+func Test_repositoryNCM_Create_FailNomenclatura(t *testing.T) {
+	conexao, _ := gerarConexaoBanco()
+	mig := conexao.Migrator()
+	err := mig.DropTable(&NomenclaturaBanco{})
+	if err != nil {
+		t.Errorf("Ocorreu um erro esperado ao tentar migrar o banco %v", err)
+	}
+
+	repository := NewRepositoryNCM(conexao)
+	ncmGravar := gerarNCMBanco()
+	err = repository.Create(&ncmGravar)
+	if err == nil {
+		t.Errorf("Não ocorreu um erro esperado ao tentar gravar %v", err)
 	}
 
 	deletarBanco(conexao)
@@ -130,5 +165,49 @@ func Test_repositoryNCM_Update(t *testing.T) {
 	if !reflect.DeepEqual(data, ncm.DataUltimaAtualizacaoNcm) {
 		t.Errorf("Ocorreu um erro, a data esperada %s, data recebida %s", data, ncm.DataUltimaAtualizacaoNcm)
 	}
+	deletarBanco(conexao)
+}
+
+func Test_repositoryNCM_Update_FailNCM(t *testing.T) {
+	conexao, _ := gerarConexaoBanco()
+	repository := NewRepositoryNCM(conexao)
+	ncmGravar := gerarNCMBanco()
+	repository.Create(&ncmGravar)
+	data := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+	ncmUpdate := ncmGravar
+	ncmUpdate.DataUltimaAtualizacaoNcm = data
+	mig := conexao.Migrator()
+	err := mig.DropTable(&NcmBanco{})
+	if err != nil {
+		t.Errorf("Ocorreu um erro esperado ao tentar migrar o banco %v", err)
+	}
+
+	err = repository.Update(&ncmUpdate)
+	if err == nil {
+		t.Errorf("Ocorreu um erro ao tentar atualizar NcmBanco %v", err)
+	}
+
+	deletarBanco(conexao)
+}
+
+func Test_repositoryNCM_Update_FailNomenclaturas(t *testing.T) {
+	conexao, _ := gerarConexaoBanco()
+	repository := NewRepositoryNCM(conexao)
+	ncmGravar := gerarNCMBanco()
+	repository.Create(&ncmGravar)
+	data := time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC)
+	ncmUpdate := ncmGravar
+	ncmUpdate.DataUltimaAtualizacaoNcm = data
+	mig := conexao.Migrator()
+	err := mig.DropTable(&NomenclaturaBanco{})
+	if err != nil {
+		t.Errorf("Ocorreu um erro esperado ao tentar migrar o banco %v", err)
+	}
+
+	err = repository.Update(&ncmUpdate)
+	if err == nil {
+		t.Errorf("Ocorreu um erro ao tentar atualizar Nomenclaturas %v", err)
+	}
+
 	deletarBanco(conexao)
 }
