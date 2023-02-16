@@ -1,50 +1,62 @@
 package NCM
 
 import (
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"reflect"
 	"testing"
 )
 
 func TestNewRepositorySaude(t *testing.T) {
-	type args struct {
-		db *gorm.DB
+	conexao, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar a conexão : %v", err)
 	}
-	tests := []struct {
-		name string
-		args args
-		want IRepositorySaude
-	}{
-		// TODO: Add test cases.
+	repository := NewRepositorySaude(conexao)
+
+	if got := NewRepositorySaude(conexao); !reflect.DeepEqual(got, repository) {
+		t.Errorf("NewRepositorySaude() %v diferente de %v", got, repository)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewRepositorySaude(tt.args.db); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewRepositorySaude() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+
+	deletarBanco(conexao)
 }
 
 func Test_saudeBanco_Saudavel(t *testing.T) {
-	type fields struct {
-		db *gorm.DB
+	conexao, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar a conexão : %v", err)
 	}
-	tests := []struct {
-		name   string
-		fields fields
-		want   bool
-	}{
-		// TODO: Add test cases.
+	repository := NewRepositorySaude(conexao)
+
+	if !repository.Saudavel() {
+		t.Errorf("A conexão com o banco de dados não é saudável : %v", err)
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			saude := &saudeBanco{
-				db: tt.fields.db,
-			}
-			if got := saude.Saudavel(); got != tt.want {
-				t.Errorf("Saudavel() = %v, want %v", got, tt.want)
-			}
-		})
+	deletarBanco(conexao)
+}
+
+func Test_saudeBanco_Saudavel_FailPing(t *testing.T) {
+	conexao, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar a conexão : %v", err)
+	}
+	repository := NewRepositorySaude(conexao)
+
+	sqlDB, err := conexao.DB()
+	err = sqlDB.Close()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao desconectar com o banco : %v", err)
+	}
+
+	if repository.Saudavel() {
+		t.Errorf("Não ocorreu um erro esperado com a conexão com o banco de dados")
+	}
+	deletarBanco(conexao)
+}
+
+func Test_saudeBanco_Saudavel_FailConexao(t *testing.T) {
+	conexao, _ := gorm.Open(postgres.Open("teste.db"), &gorm.Config{})
+	repository := NewRepositorySaude(conexao)
+	if repository.Saudavel() {
+		t.Errorf("Não ocorreu um erro esperado com a conexão com o banco de dados. ")
 	}
 }
