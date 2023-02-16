@@ -42,10 +42,14 @@ func (consulta *consultaNCM) AtualizarNCM() error {
 	}
 
 	data, err := time.Parse(consulta.modeloData, dadosConsulta.DataUltimaAtualizacaoNcm)
+	if err != nil {
+		return err
+	}
+
 	if data.After(ncm.DataUltimaAtualizacaoNcm) {
 		lista, erro := consulta.listaNomenclatura(dadosConsulta)
 		if erro != nil {
-			return err
+			return erro
 		}
 		ncmBanco := NCM.NcmBanco{
 			ID:                       ncm.ID,
@@ -95,10 +99,7 @@ func (consulta *consultaNCM) listaNomenclatura(listaNCM ConsultaNCMSefaz.NcmRece
 		if err != nil {
 			return nil, err
 		}
-		dataAtualizacao, err := time.Parse(consulta.modeloData, listaNCM.DataUltimaAtualizacaoNcm)
-		if err != nil {
-			return nil, err
-		}
+		dataAtualizacao, _ := time.Parse(consulta.modeloData, listaNCM.DataUltimaAtualizacaoNcm)
 		lista = append(lista, NCM.NomenclaturaBanco{
 			Codigo:                   nomenclatura.Codigo,
 			Descricao:                nomenclatura.Descricao,
@@ -130,7 +131,7 @@ func (consulta *consultaNCM) UltimaAtualizacao() (time.Time, error) {
 }
 
 func (consulta *consultaNCM) ListarNCMPorData(data string) ([]*NCM.NomenclaturaBanco, error) {
-	dataConvertida, err := time.Parse("02-01-2006", data)
+	dataConvertida, err := time.Parse("02/01/2006", data)
 	if err != nil {
 		return nil, err
 	}

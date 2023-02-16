@@ -122,6 +122,153 @@ func Test_consultaNCM_AtualizarNCM(t *testing.T) {
 	}
 }
 
+func Test_consultaNCM_AtualizarNCM_ConsultaSefazFail(t *testing.T) {
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+
+	defer func() {
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New("teste123")
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+	consulta := NewConsultaNCM(consultaSefaz, repositoryNCM, repositoryNomenclatura)
+
+	err = consulta.AtualizarNCM()
+	if err == nil {
+		t.Errorf("O erro esperado ao tentar atualizar os NCMs não ocorreu. ")
+	}
+}
+
+func Test_consultaNCM_AtualizarNCM_BuscaNCMBancoFail(t *testing.T) {
+	server := criarServidor()
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+
+	mig := db.Migrator()
+	err = mig.DropTable(&NCM.NcmBanco{})
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao apagar a tabela : %v", err)
+	}
+
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+	consulta := NewConsultaNCM(consultaSefaz, repositoryNCM, repositoryNomenclatura)
+
+	err = consulta.AtualizarNCM()
+	if err == nil {
+		t.Errorf("O erro esperado ao tentar atualizar os NCMs não ocorreu. ")
+	}
+}
+
+func Test_consultaNCM_AtualizarNCMDataParseFail(t *testing.T) {
+	ncm := preencheNcmReceita()
+	ncm.DataUltimaAtualizacaoNcm = "2000/31/02"
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		jsonNCM, _ := json.Marshal(ncm)
+		fmt.Fprintf(w, string(jsonNCM[:]))
+	}))
+
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+	consulta := NewConsultaNCM(consultaSefaz, repositoryNCM, repositoryNomenclatura)
+
+	err = consulta.AtualizarNCM()
+	if err == nil {
+		t.Errorf("O erro esperado ao tentar atualizar os NCMs não ocorreu. ")
+	}
+}
+
+func Test_consultaNCM_AtualizarNomenclaturaDataInicioParseFail(t *testing.T) {
+	ncm := preencheNcmReceita()
+	ncm.Nomenclaturas[0].DataInicio = "2023/35/01"
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		jsonNCM, _ := json.Marshal(ncm)
+		fmt.Fprintf(w, string(jsonNCM[:]))
+	}))
+
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+	consulta := NewConsultaNCM(consultaSefaz, repositoryNCM, repositoryNomenclatura)
+
+	err = consulta.AtualizarNCM()
+	if err == nil {
+		t.Errorf("O erro esperado ao tentar atualizar os NCMs não ocorreu. ")
+	}
+}
+
+func Test_consultaNCM_AtualizarNomenclaturaDataFimParseFail(t *testing.T) {
+	ncm := preencheNcmReceita()
+	ncm.Nomenclaturas[0].DataFim = "2023/35/01"
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		jsonNCM, _ := json.Marshal(ncm)
+		fmt.Fprintf(w, string(jsonNCM[:]))
+	}))
+
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+	consulta := NewConsultaNCM(consultaSefaz, repositoryNCM, repositoryNomenclatura)
+
+	err = consulta.AtualizarNCM()
+	if err == nil {
+		t.Errorf("O erro esperado ao tentar atualizar os NCMs não ocorreu. ")
+	}
+}
+
 func Test_consultaNCM_gravarNCM(t *testing.T) {
 	server := criarServidor()
 	db, err := gerarConexaoBanco()
@@ -159,6 +306,146 @@ func Test_consultaNCM_gravarNCM(t *testing.T) {
 	err = consulta.gravarNCM(ncmBanco)
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gravar o NCM %v", err)
+	}
+}
+
+func Test_consultaNCM_gravarNCM_NCMFail(t *testing.T) {
+	server := criarServidor()
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "02/01/2006",
+	}
+	ncm := preencheNcmReceita()
+	lista, err := consulta.listaNomenclatura(ncm)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
+	}
+	data, _ := time.Parse(consulta.modeloData, "01/01/2023")
+	ncmBanco := NCM.NcmBanco{
+		ID:                       1,
+		DataUltimaAtualizacaoNcm: data,
+		Nomenclaturas:            lista,
+	}
+
+	mig := db.Migrator()
+	err = mig.DropTable(&NCM.NcmBanco{})
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao apagar tabela %v", err)
+	}
+
+	err = consulta.gravarNCM(ncmBanco)
+	if err == nil {
+		t.Errorf("Não ocorreu o erro esperado ao gravar o NCM %v", err)
+	}
+}
+
+func Test_consultaNCM_gravarNCM_NomenclaturaUpdateFail(t *testing.T) {
+	server := criarServidor()
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "02/01/2006",
+	}
+	ncm := preencheNcmReceita()
+	lista, err := consulta.listaNomenclatura(ncm)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
+	}
+	data, _ := time.Parse(consulta.modeloData, "01/01/2023")
+	ncmBanco := NCM.NcmBanco{
+		ID:                       1,
+		DataUltimaAtualizacaoNcm: data,
+		Nomenclaturas:            lista,
+	}
+
+	_ = consulta.gravarNCM(ncmBanco)
+
+	mig := db.Migrator()
+	err = mig.DropTable(&NCM.NomenclaturaBanco{})
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao apagar tabela %v", err)
+	}
+
+	err = consulta.gravarNCM(ncmBanco)
+	if err == nil {
+		t.Errorf("Não ocorreu o erro esperado ao gravar o NCM %v", err)
+	}
+}
+
+func Test_consultaNCM_gravarNCM_NomenclaturaCreateFail(t *testing.T) {
+	server := criarServidor()
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "02/01/2006",
+	}
+	ncm := preencheNcmReceita()
+	lista, err := consulta.listaNomenclatura(ncm)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
+	}
+	data, _ := time.Parse(consulta.modeloData, "01/01/2023")
+	ncmBanco := NCM.NcmBanco{
+		ID:                       0,
+		DataUltimaAtualizacaoNcm: data,
+		Nomenclaturas:            lista,
+	}
+
+	mig := db.Migrator()
+	err = mig.DropTable(&NCM.NomenclaturaBanco{})
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao apagar tabela %v", err)
+	}
+
+	err = consulta.gravarNCM(ncmBanco)
+	if err == nil {
+		t.Errorf("Não ocorreu o erro esperado ao gravar o NCM %v", err)
 	}
 }
 
@@ -304,5 +591,343 @@ func Test_consultaNCM_listaNomenclatura(t *testing.T) {
 
 	if len(lista) != 1 {
 		t.Errorf("A quantidade de registros retornados não é igual a um. ")
+	}
+}
+
+func Test_ListarNCMs(t *testing.T) {
+	server := criarServidor()
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "02/01/2006",
+	}
+	ncm := preencheNcmReceita()
+	lista, err := consulta.listaNomenclatura(ncm)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
+	}
+	data, _ := time.Parse(consulta.modeloData, "01/01/2023")
+	ncmBanco := NCM.NcmBanco{
+		ID:                       1,
+		DataUltimaAtualizacaoNcm: data,
+		Nomenclaturas:            lista,
+	}
+
+	err = consulta.gravarNCM(ncmBanco)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gravar o NCM %v", err)
+	}
+
+	ncmLista, err := consulta.ListarNCMs()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gravar o NCM %v", err)
+	}
+
+	if len(ncmLista) != len(lista) {
+		t.Errorf("O valor de retorno da listagem não é igual a %v!", len(lista))
+	}
+}
+
+func Test_ListarNCMs_Fail(t *testing.T) {
+	server := criarServidor()
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "02/01/2006",
+	}
+	ncm := preencheNcmReceita()
+	lista, err := consulta.listaNomenclatura(ncm)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
+	}
+	data, _ := time.Parse(consulta.modeloData, "01/01/2023")
+	ncmBanco := NCM.NcmBanco{
+		ID:                       1,
+		DataUltimaAtualizacaoNcm: data,
+		Nomenclaturas:            lista,
+	}
+
+	err = consulta.gravarNCM(ncmBanco)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gravar o NCM %v", err)
+	}
+
+	mig := db.Migrator()
+	err = mig.DropTable(&NCM.NomenclaturaBanco{})
+	if err != nil {
+		t.Errorf("Ocorreu um erro tentar apagar a tabela Nomenclatura : %v", err)
+	}
+
+	_, err = consulta.ListarNCMs()
+	if err == nil {
+		t.Errorf("Não ocorreu um erro ao buscar a lista")
+	}
+}
+
+func Test_UltimaAtualizacao(t *testing.T) {
+	server := criarServidor()
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "02/01/2006",
+	}
+	ncm := preencheNcmReceita()
+	lista, err := consulta.listaNomenclatura(ncm)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
+	}
+	data, _ := time.Parse(consulta.modeloData, "01/01/2023")
+	ncmBanco := NCM.NcmBanco{
+		ID:                       1,
+		DataUltimaAtualizacaoNcm: data,
+		Nomenclaturas:            lista,
+	}
+
+	err = consulta.gravarNCM(ncmBanco)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gravar o NCM %v", err)
+	}
+
+	_, err = consulta.UltimaAtualizacao()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao buscar a última atualização! %v", err)
+	}
+}
+
+func Test_UltimaAtualizacao_Fail(t *testing.T) {
+	server := criarServidor()
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "02/01/2006",
+	}
+	ncm := preencheNcmReceita()
+	lista, err := consulta.listaNomenclatura(ncm)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
+	}
+	data, _ := time.Parse(consulta.modeloData, "01/01/2023")
+	ncmBanco := NCM.NcmBanco{
+		ID:                       1,
+		DataUltimaAtualizacaoNcm: data,
+		Nomenclaturas:            lista,
+	}
+
+	err = consulta.gravarNCM(ncmBanco)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gravar o NCM %v", err)
+	}
+
+	mig := db.Migrator()
+	err = mig.DropTable(&NCM.NcmBanco{})
+	if err != nil {
+		t.Errorf("Ocorreu um erro tentar apagar a tabela Nomenclatura : %v", err)
+	}
+
+	_, err = consulta.UltimaAtualizacao()
+	if err == nil {
+		t.Errorf("Não ocorreu um erro ao buscar a lista")
+	}
+}
+
+func Test_ListarNCMPorData(t *testing.T) {
+	server := criarServidor()
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "02/01/2006",
+	}
+	ncm := preencheNcmReceita()
+	lista, err := consulta.listaNomenclatura(ncm)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
+	}
+	data, _ := time.Parse(consulta.modeloData, "01/01/2023")
+	ncmBanco := NCM.NcmBanco{
+		ID:                       1,
+		DataUltimaAtualizacaoNcm: data,
+		Nomenclaturas:            lista,
+	}
+
+	err = consulta.gravarNCM(ncmBanco)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gravar o NCM %v", err)
+	}
+
+	listaNCM, err := consulta.ListarNCMPorData("01/01/2023")
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao buscar a lista")
+	}
+
+	if len(listaNCM) == 0 {
+		t.Errorf("O valor da listagem não deve ser zero!")
+	}
+}
+
+func Test_ListarNCMPorData_ParseFail(t *testing.T) {
+	server := criarServidor()
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "02/01/2006",
+	}
+	ncm := preencheNcmReceita()
+	lista, err := consulta.listaNomenclatura(ncm)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
+	}
+	data, _ := time.Parse(consulta.modeloData, "01/01/2023")
+	ncmBanco := NCM.NcmBanco{
+		ID:                       1,
+		DataUltimaAtualizacaoNcm: data,
+		Nomenclaturas:            lista,
+	}
+
+	err = consulta.gravarNCM(ncmBanco)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gravar o NCM %v", err)
+	}
+
+	_, err = consulta.ListarNCMPorData("01/31/2023")
+	if err == nil {
+		t.Errorf("Não ocorreu um erro ao buscar a lista relacionado a formação de data")
+	}
+}
+
+func Test_ListarNCMPorData_BuscaFail(t *testing.T) {
+	server := criarServidor()
+	db, err := gerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+	defer func() {
+		server.Close()
+		deletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "02/01/2006",
+	}
+	ncm := preencheNcmReceita()
+	lista, err := consulta.listaNomenclatura(ncm)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
+	}
+	data, _ := time.Parse(consulta.modeloData, "01/01/2023")
+	ncmBanco := NCM.NcmBanco{
+		ID:                       1,
+		DataUltimaAtualizacaoNcm: data,
+		Nomenclaturas:            lista,
+	}
+
+	err = consulta.gravarNCM(ncmBanco)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gravar o NCM %v", err)
+	}
+
+	mig := db.Migrator()
+	err = mig.DropTable(&NCM.NomenclaturaBanco{})
+
+	_, err = consulta.ListarNCMPorData("01/01/2023")
+	if err == nil {
+		t.Errorf("Não ocorreu um erro ao buscar a lista de NCM")
 	}
 }
