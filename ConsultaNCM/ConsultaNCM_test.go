@@ -116,6 +116,42 @@ func Test_consultaNCM_AtualizarNCM_BuscaNCMBancoFail(t *testing.T) {
 	}
 }
 
+func Test_consultaNCM_AtualizarNCMgravaNCMFail(t *testing.T) {
+	ncm := MockTestes.PreencheNcmReceita()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		jsonNCM, _ := json.Marshal(ncm)
+		fmt.Fprintf(w, string(jsonNCM[:]))
+	}))
+
+	db, err := MockTestes.GerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+
+	defer func() {
+		server.Close()
+		MockTestes.DeletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+	consulta := NewConsultaNCM(consultaSefaz, repositoryNCM, repositoryNomenclatura)
+
+	mig := db.Migrator()
+	err = mig.DropTable(&NCM.NomenclaturaBanco{})
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao deletar tabela.")
+	}
+
+	err = consulta.AtualizarNCM()
+	if err == nil {
+		t.Errorf("O erro esperado ao tentar atualizar os NCMs não ocorreu. ")
+	}
+}
+
 func Test_consultaNCM_AtualizarNCMDataParseFail(t *testing.T) {
 	ncm := MockTestes.PreencheNcmReceita()
 	ncm.DataUltimaAtualizacaoNcm = "2000/31/02"
@@ -943,5 +979,104 @@ func Test_paraDataModeloSoNumero(t *testing.T) {
 
 	if !data.Equal(dataComparacao) {
 		t.Errorf("Ocorreu um erro, as datas são divergentes %v <> %v", data, dataComparacao)
+	}
+}
+
+func Test_paraNomenclaturaSaida(t *testing.T) {
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+	defer func() {
+		server.Close()
+		MockTestes.DeletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "02/01/2006",
+	}
+
+	nomenclatura := NCM.NomenclaturaBanco{
+		Codigo:                   "01",
+		DataInicio:               time.Now(),
+		DataFim:                  time.Now(),
+		Descricao:                "teste",
+		TipoAto:                  "02",
+		NumeroAto:                "03",
+		AnoAto:                   "04",
+		DataUltimaAtualizacaoNcm: time.Now(),
+	}
+
+	nomeConvertido := consulta.paraNomenclaturaSaida(nomenclatura)
+	if nomeConvertido.Codigo != nomenclatura.Codigo {
+		t.Errorf("Ocorreu um erro, os campos AnoAto são divergentes %v <> %v", nomeConvertido.AnoAto, nomenclatura.AnoAto)
+	}
+	if nomeConvertido.DataInicio != nomenclatura.DataInicio.Format(consulta.modeloData) {
+		t.Errorf("Ocorreu um erro, os campos AnoAto são divergentes %v <> %v", nomeConvertido.AnoAto, nomenclatura.AnoAto)
+	}
+	if nomeConvertido.DataFim != nomenclatura.DataFim.Format(consulta.modeloData) {
+		t.Errorf("Ocorreu um erro, os campos AnoAto são divergentes %v <> %v", nomeConvertido.AnoAto, nomenclatura.AnoAto)
+	}
+	if nomeConvertido.Descricao != nomenclatura.Descricao {
+		t.Errorf("Ocorreu um erro, os campos AnoAto são divergentes %v <> %v", nomeConvertido.AnoAto, nomenclatura.AnoAto)
+	}
+	if nomeConvertido.TipoAto != nomenclatura.TipoAto {
+		t.Errorf("Ocorreu um erro, os campos AnoAto são divergentes %v <> %v", nomeConvertido.AnoAto, nomenclatura.AnoAto)
+	}
+	if nomeConvertido.NumeroAto != nomenclatura.NumeroAto {
+		t.Errorf("Ocorreu um erro, os campos AnoAto são divergentes %v <> %v", nomeConvertido.AnoAto, nomenclatura.AnoAto)
+	}
+	if nomeConvertido.AnoAto != nomenclatura.AnoAto {
+		t.Errorf("Ocorreu um erro, os campos AnoAto são divergentes %v <> %v", nomeConvertido.AnoAto, nomenclatura.AnoAto)
+	}
+	if nomeConvertido.DataUltimaAtualizacaoNcm != nomenclatura.DataUltimaAtualizacaoNcm.Format(consulta.modeloData) {
+		t.Errorf("Ocorreu um erro, os campos AnoAto são divergentes %v <> %v", nomeConvertido.AnoAto, nomenclatura.AnoAto)
+	}
+}
+
+func Test_paraNcmSaida(t *testing.T) {
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+	defer func() {
+		server.Close()
+		MockTestes.DeletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "02/01/2006",
+	}
+
+	ncm := NCM.NcmBanco{
+		ID:                       1,
+		DataUltimaAtualizacaoNcm: time.Now(),
+		Nomenclaturas:            nil,
+	}
+
+	ncmConvertido := consulta.paraNcmSaida(ncm)
+	if ncmConvertido.ID != ncm.ID {
+		t.Errorf("Ocorreu um erro, os campos ID são divergentes %v <> %v", ncmConvertido.ID, ncm.ID)
+	}
+	if ncmConvertido.DataUltimaAtualizacaoNcm != ncm.DataUltimaAtualizacaoNcm.Format(consulta.modeloData) {
+		t.Errorf("Ocorreu um erro, os campos DataUltimaAtualizacaoNCM são divergentes %v <> %v", ncmConvertido.DataUltimaAtualizacaoNcm, ncm.DataUltimaAtualizacaoNcm)
 	}
 }

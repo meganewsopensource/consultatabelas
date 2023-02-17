@@ -9,9 +9,9 @@ import (
 
 type IConsultaNCM interface {
 	AtualizarNCM() error
-	ListarNCMs() ([]*NCM.NomenclaturaBanco, error)
-	UltimaAtualizacao() (time.Time, error)
-	ListarNCMPorData(data string) ([]*NCM.NomenclaturaBanco, error)
+	ListarNCMs() ([]*NomenclaturaSaida, error)
+	UltimaAtualizacao() (NcmSaida, error)
+	ListarNCMPorData(data string) ([]*NomenclaturaSaida, error)
 }
 
 type consultaNCM struct {
@@ -116,23 +116,29 @@ func (consulta *consultaNCM) listaNomenclatura(listaNCM ConsultaNCMSefaz.NcmRece
 	return lista, nil
 }
 
-func (consulta *consultaNCM) ListarNCMs() ([]*NCM.NomenclaturaBanco, error) {
+func (consulta *consultaNCM) ListarNCMs() ([]*NomenclaturaSaida, error) {
 	lista, err := consulta.repositoryNomenclatura.GetAll()
 	if err != nil {
 		return nil, err
 	}
-	return lista, nil
+	listaConvertida := []*NomenclaturaSaida{}
+	for _, item := range lista {
+		itemConvertido := consulta.paraNomenclaturaSaida(*item)
+		listaConvertida = append(listaConvertida, &itemConvertido)
+	}
+	return listaConvertida, nil
 }
 
-func (consulta *consultaNCM) UltimaAtualizacao() (time.Time, error) {
+func (consulta *consultaNCM) UltimaAtualizacao() (NcmSaida, error) {
 	ncm, err := consulta.respotoryNCM.GetByID(1)
 	if err != nil {
-		return time.Now(), err
+		return NcmSaida{}, err
 	}
-	return ncm.DataUltimaAtualizacaoNcm, nil
+	ncmSaida := consulta.paraNcmSaida(*ncm)
+	return ncmSaida, nil
 }
 
-func (consulta *consultaNCM) ListarNCMPorData(data string) ([]*NCM.NomenclaturaBanco, error) {
+func (consulta *consultaNCM) ListarNCMPorData(data string) ([]*NomenclaturaSaida, error) {
 	dataConvertida, err := consulta.paraData(data)
 	if err != nil {
 		return nil, err
@@ -141,7 +147,12 @@ func (consulta *consultaNCM) ListarNCMPorData(data string) ([]*NCM.NomenclaturaB
 	if err != nil {
 		return nil, err
 	}
-	return lista, nil
+	listaConvertida := []*NomenclaturaSaida{}
+	for _, item := range lista {
+		itemConvertido := consulta.paraNomenclaturaSaida(*item)
+		listaConvertida = append(listaConvertida, &itemConvertido)
+	}
+	return listaConvertida, nil
 }
 
 func (consulta *consultaNCM) paraData(data string) (time.Time, error) {
@@ -153,4 +164,24 @@ func (consulta *consultaNCM) paraData(data string) (time.Time, error) {
 		return time.Time{}, err
 	}
 	return dataConvertida, nil
+}
+
+func (consulta *consultaNCM) paraNomenclaturaSaida(nomenclatura NCM.NomenclaturaBanco) NomenclaturaSaida {
+	return NomenclaturaSaida{
+		Codigo:                   nomenclatura.Codigo,
+		DataInicio:               nomenclatura.DataInicio.Format(consulta.modeloData),
+		DataFim:                  nomenclatura.DataFim.Format(consulta.modeloData),
+		Descricao:                nomenclatura.Descricao,
+		TipoAto:                  nomenclatura.TipoAto,
+		NumeroAto:                nomenclatura.NumeroAto,
+		AnoAto:                   nomenclatura.AnoAto,
+		DataUltimaAtualizacaoNcm: nomenclatura.DataUltimaAtualizacaoNcm.Format(consulta.modeloData),
+	}
+}
+
+func (consulta *consultaNCM) paraNcmSaida(ncm NCM.NcmBanco) NcmSaida {
+	return NcmSaida{
+		ID:                       ncm.ID,
+		DataUltimaAtualizacaoNcm: ncm.DataUltimaAtualizacaoNcm.Format(consulta.modeloData),
+	}
 }
