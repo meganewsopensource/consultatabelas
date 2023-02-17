@@ -37,7 +37,10 @@ import (
 
 // @schemes http
 func main() {
-	variaveis := LeituraVariaveis.NewLeVariavelAmbiente()
+	variaveis, err := LeituraVariaveis.NewLeVariavelAmbiente(".env")
+	if err != nil {
+		panic(err)
+	}
 	sqlDB, err := sql.Open("pgx", variaveis.ConnectionString())
 	if err != nil {
 		panic(err)

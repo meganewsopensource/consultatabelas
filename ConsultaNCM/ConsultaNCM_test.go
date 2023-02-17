@@ -4,85 +4,25 @@ import (
 	"ConsultaTabelas/Banco/NCM"
 	"ConsultaTabelas/ConsultaHTTP"
 	"ConsultaTabelas/ConsultaNCMSefaz"
+	"ConsultaTabelas/MockTestes"
 	"encoding/json"
 	"fmt"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"reflect"
 	"testing"
 	"time"
 )
 
-func gerarConexaoBanco() (*gorm.DB, error) {
-	db, err := gorm.Open(sqlite.Open("gorm.db"), &gorm.Config{})
-	migracao := NCM.NewMigration(db)
-	_ = migracao.Executar()
-	return db, err
-}
-
-func criarServidor() *httptest.Server {
-	ncm := preencheNcmReceita()
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		jsonNCM, _ := json.Marshal(ncm)
-		fmt.Fprintf(w, string(jsonNCM[:]))
-	}))
-	return server
-}
-
-func deletarBanco(db *gorm.DB) {
-	sqlDB, err := db.DB()
-	err = sqlDB.Close()
-	if err != nil {
-		panic(err)
-	}
-	err = os.Remove("gorm.db")
-	if err != nil {
-		panic(err)
-	}
-}
-
-func preencheNcmReceita() ConsultaNCMSefaz.NcmReceita {
-	return ConsultaNCMSefaz.NcmReceita{
-		DataUltimaAtualizacaoNcm: "01/01/2023",
-		Nomenclaturas:            preencheNomenclaturas(),
-	}
-}
-
-func preencheNomenclaturas() []ConsultaNCMSefaz.Nomenclatura {
-	lista := []ConsultaNCMSefaz.Nomenclatura{}
-	lista = append(lista, ConsultaNCMSefaz.Nomenclatura{
-		Codigo:     "01",
-		Descricao:  "Teste 01",
-		DataInicio: "01/01/2023",
-		DataFim:    "31/12/2023",
-		TipoAto:    "Regex",
-		NumeroAto:  "20",
-		AnoAto:     "2021",
-	},
-		ConsultaNCMSefaz.Nomenclatura{
-			Codigo:     "02",
-			Descricao:  "Teste 02",
-			DataInicio: "01/02/2023",
-			DataFim:    "28/02/2023",
-			TipoAto:    "Regex 2",
-			NumeroAto:  "202",
-			AnoAto:     "2022",
-		})
-	return lista
-}
-
 func TestNewConsultaNCM(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -98,15 +38,15 @@ func TestNewConsultaNCM(t *testing.T) {
 }
 
 func Test_consultaNCM_AtualizarNCM(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -123,13 +63,13 @@ func Test_consultaNCM_AtualizarNCM(t *testing.T) {
 }
 
 func Test_consultaNCM_AtualizarNCM_ConsultaSefazFail(t *testing.T) {
-	db, err := gerarConexaoBanco()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 
 	defer func() {
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New("teste123")
@@ -146,8 +86,8 @@ func Test_consultaNCM_AtualizarNCM_ConsultaSefazFail(t *testing.T) {
 }
 
 func Test_consultaNCM_AtualizarNCM_BuscaNCMBancoFail(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
@@ -160,7 +100,7 @@ func Test_consultaNCM_AtualizarNCM_BuscaNCMBancoFail(t *testing.T) {
 
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -177,21 +117,21 @@ func Test_consultaNCM_AtualizarNCM_BuscaNCMBancoFail(t *testing.T) {
 }
 
 func Test_consultaNCM_AtualizarNCMDataParseFail(t *testing.T) {
-	ncm := preencheNcmReceita()
+	ncm := MockTestes.PreencheNcmReceita()
 	ncm.DataUltimaAtualizacaoNcm = "2000/31/02"
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		jsonNCM, _ := json.Marshal(ncm)
 		fmt.Fprintf(w, string(jsonNCM[:]))
 	}))
 
-	db, err := gerarConexaoBanco()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -208,21 +148,21 @@ func Test_consultaNCM_AtualizarNCMDataParseFail(t *testing.T) {
 }
 
 func Test_consultaNCM_AtualizarNomenclaturaDataInicioParseFail(t *testing.T) {
-	ncm := preencheNcmReceita()
+	ncm := MockTestes.PreencheNcmReceita()
 	ncm.Nomenclaturas[0].DataInicio = "2023/35/01"
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		jsonNCM, _ := json.Marshal(ncm)
 		fmt.Fprintf(w, string(jsonNCM[:]))
 	}))
 
-	db, err := gerarConexaoBanco()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -239,21 +179,21 @@ func Test_consultaNCM_AtualizarNomenclaturaDataInicioParseFail(t *testing.T) {
 }
 
 func Test_consultaNCM_AtualizarNomenclaturaDataFimParseFail(t *testing.T) {
-	ncm := preencheNcmReceita()
+	ncm := MockTestes.PreencheNcmReceita()
 	ncm.Nomenclaturas[0].DataFim = "2023/35/01"
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		jsonNCM, _ := json.Marshal(ncm)
 		fmt.Fprintf(w, string(jsonNCM[:]))
 	}))
 
-	db, err := gerarConexaoBanco()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -270,14 +210,14 @@ func Test_consultaNCM_AtualizarNomenclaturaDataFimParseFail(t *testing.T) {
 }
 
 func Test_consultaNCM_gravarNCM(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -291,7 +231,7 @@ func Test_consultaNCM_gravarNCM(t *testing.T) {
 		repositoryNomenclatura: repositoryNomenclatura,
 		modeloData:             "02/01/2006",
 	}
-	ncm := preencheNcmReceita()
+	ncm := MockTestes.PreencheNcmReceita()
 	lista, err := consulta.listaNomenclatura(ncm)
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
@@ -310,14 +250,14 @@ func Test_consultaNCM_gravarNCM(t *testing.T) {
 }
 
 func Test_consultaNCM_gravarNCM_NCMFail(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -331,7 +271,7 @@ func Test_consultaNCM_gravarNCM_NCMFail(t *testing.T) {
 		repositoryNomenclatura: repositoryNomenclatura,
 		modeloData:             "02/01/2006",
 	}
-	ncm := preencheNcmReceita()
+	ncm := MockTestes.PreencheNcmReceita()
 	lista, err := consulta.listaNomenclatura(ncm)
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
@@ -356,14 +296,14 @@ func Test_consultaNCM_gravarNCM_NCMFail(t *testing.T) {
 }
 
 func Test_consultaNCM_gravarNCM_NomenclaturaUpdateFail(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -377,7 +317,7 @@ func Test_consultaNCM_gravarNCM_NomenclaturaUpdateFail(t *testing.T) {
 		repositoryNomenclatura: repositoryNomenclatura,
 		modeloData:             "02/01/2006",
 	}
-	ncm := preencheNcmReceita()
+	ncm := MockTestes.PreencheNcmReceita()
 	lista, err := consulta.listaNomenclatura(ncm)
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
@@ -404,14 +344,14 @@ func Test_consultaNCM_gravarNCM_NomenclaturaUpdateFail(t *testing.T) {
 }
 
 func Test_consultaNCM_gravarNCM_NomenclaturaCreateFail(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -425,7 +365,7 @@ func Test_consultaNCM_gravarNCM_NomenclaturaCreateFail(t *testing.T) {
 		repositoryNomenclatura: repositoryNomenclatura,
 		modeloData:             "02/01/2006",
 	}
-	ncm := preencheNcmReceita()
+	ncm := MockTestes.PreencheNcmReceita()
 	lista, err := consulta.listaNomenclatura(ncm)
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
@@ -450,14 +390,14 @@ func Test_consultaNCM_gravarNCM_NomenclaturaCreateFail(t *testing.T) {
 }
 
 func Test_consultaNCM_listaNomenclaturaDataInicialErrada(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -500,14 +440,14 @@ func Test_consultaNCM_listaNomenclaturaDataInicialErrada(t *testing.T) {
 }
 
 func Test_consultaNCM_listaNomenclaturaDataFinalErrada(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -546,14 +486,14 @@ func Test_consultaNCM_listaNomenclaturaDataFinalErrada(t *testing.T) {
 }
 
 func Test_consultaNCM_listaNomenclatura(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -595,14 +535,14 @@ func Test_consultaNCM_listaNomenclatura(t *testing.T) {
 }
 
 func Test_ListarNCMs(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -616,7 +556,7 @@ func Test_ListarNCMs(t *testing.T) {
 		repositoryNomenclatura: repositoryNomenclatura,
 		modeloData:             "02/01/2006",
 	}
-	ncm := preencheNcmReceita()
+	ncm := MockTestes.PreencheNcmReceita()
 	lista, err := consulta.listaNomenclatura(ncm)
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
@@ -644,14 +584,14 @@ func Test_ListarNCMs(t *testing.T) {
 }
 
 func Test_ListarNCMs_Fail(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -665,7 +605,7 @@ func Test_ListarNCMs_Fail(t *testing.T) {
 		repositoryNomenclatura: repositoryNomenclatura,
 		modeloData:             "02/01/2006",
 	}
-	ncm := preencheNcmReceita()
+	ncm := MockTestes.PreencheNcmReceita()
 	lista, err := consulta.listaNomenclatura(ncm)
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
@@ -695,14 +635,14 @@ func Test_ListarNCMs_Fail(t *testing.T) {
 }
 
 func Test_UltimaAtualizacao(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -716,7 +656,7 @@ func Test_UltimaAtualizacao(t *testing.T) {
 		repositoryNomenclatura: repositoryNomenclatura,
 		modeloData:             "02/01/2006",
 	}
-	ncm := preencheNcmReceita()
+	ncm := MockTestes.PreencheNcmReceita()
 	lista, err := consulta.listaNomenclatura(ncm)
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
@@ -740,14 +680,14 @@ func Test_UltimaAtualizacao(t *testing.T) {
 }
 
 func Test_UltimaAtualizacao_Fail(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -761,7 +701,7 @@ func Test_UltimaAtualizacao_Fail(t *testing.T) {
 		repositoryNomenclatura: repositoryNomenclatura,
 		modeloData:             "02/01/2006",
 	}
-	ncm := preencheNcmReceita()
+	ncm := MockTestes.PreencheNcmReceita()
 	lista, err := consulta.listaNomenclatura(ncm)
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
@@ -791,14 +731,14 @@ func Test_UltimaAtualizacao_Fail(t *testing.T) {
 }
 
 func Test_ListarNCMPorData(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -812,7 +752,7 @@ func Test_ListarNCMPorData(t *testing.T) {
 		repositoryNomenclatura: repositoryNomenclatura,
 		modeloData:             "02/01/2006",
 	}
-	ncm := preencheNcmReceita()
+	ncm := MockTestes.PreencheNcmReceita()
 	lista, err := consulta.listaNomenclatura(ncm)
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
@@ -840,14 +780,14 @@ func Test_ListarNCMPorData(t *testing.T) {
 }
 
 func Test_ListarNCMPorData_ParseFail(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -861,7 +801,7 @@ func Test_ListarNCMPorData_ParseFail(t *testing.T) {
 		repositoryNomenclatura: repositoryNomenclatura,
 		modeloData:             "02/01/2006",
 	}
-	ncm := preencheNcmReceita()
+	ncm := MockTestes.PreencheNcmReceita()
 	lista, err := consulta.listaNomenclatura(ncm)
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
@@ -885,14 +825,14 @@ func Test_ListarNCMPorData_ParseFail(t *testing.T) {
 }
 
 func Test_ListarNCMPorData_BuscaFail(t *testing.T) {
-	server := criarServidor()
-	db, err := gerarConexaoBanco()
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
 	}
 	defer func() {
 		server.Close()
-		deletarBanco(db)
+		MockTestes.DeletarBanco(db)
 	}()
 
 	consultaHttp := ConsultaHTTP.New(server.URL)
@@ -906,7 +846,7 @@ func Test_ListarNCMPorData_BuscaFail(t *testing.T) {
 		repositoryNomenclatura: repositoryNomenclatura,
 		modeloData:             "02/01/2006",
 	}
-	ncm := preencheNcmReceita()
+	ncm := MockTestes.PreencheNcmReceita()
 	lista, err := consulta.listaNomenclatura(ncm)
 	if err != nil {
 		t.Errorf("Ocorreu um erro ao preencher lista de nomeclaturas : %v", err)
@@ -929,5 +869,79 @@ func Test_ListarNCMPorData_BuscaFail(t *testing.T) {
 	_, err = consulta.ListarNCMPorData("01/01/2023")
 	if err == nil {
 		t.Errorf("Não ocorreu um erro ao buscar a lista de NCM")
+	}
+}
+
+func Test_paraData(t *testing.T) {
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+	defer func() {
+		server.Close()
+		MockTestes.DeletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "02/01/2006",
+	}
+
+	data, err := consulta.paraData("01-01-2023")
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao converter a data. %v", err)
+	}
+	dataComparacao, err := time.Parse(consulta.modeloData, "01/01/2023")
+	if err != nil {
+		t.Errorf("Erro no parse de comparação do teste. %v", err)
+	}
+
+	if !data.Equal(dataComparacao) {
+		t.Errorf("Ocorreu um erro, as datas são divergentes %v <> %v", data, dataComparacao)
+	}
+}
+
+func Test_paraDataModeloSoNumero(t *testing.T) {
+	server := MockTestes.CriarServidor()
+	db, err := MockTestes.GerarConexaoBanco()
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão : %v", err)
+	}
+	defer func() {
+		server.Close()
+		MockTestes.DeletarBanco(db)
+	}()
+
+	consultaHttp := ConsultaHTTP.New(server.URL)
+	consultaSefaz := ConsultaNCMSefaz.New(consultaHttp)
+	repositoryNCM := NCM.NewRepositoryNCM(db)
+	repositoryNomenclatura := NCM.NewRepositoryNomenclatura(db)
+
+	consulta := &consultaNCM{
+		consultaSefaz:          consultaSefaz,
+		respotoryNCM:           repositoryNCM,
+		repositoryNomenclatura: repositoryNomenclatura,
+		modeloData:             "02/01/2006",
+	}
+
+	data, err := consulta.paraData("01012023")
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao converter a data. %v", err)
+	}
+	dataComparacao, err := time.Parse(consulta.modeloData, "01/01/2023")
+	if err != nil {
+		t.Errorf("Erro no parse de comparação do teste. %v", err)
+	}
+
+	if !data.Equal(dataComparacao) {
+		t.Errorf("Ocorreu um erro, as datas são divergentes %v <> %v", data, dataComparacao)
 	}
 }

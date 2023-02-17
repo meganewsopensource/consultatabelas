@@ -3,6 +3,7 @@ package ConsultaNCM
 import (
 	"ConsultaTabelas/Banco/NCM"
 	"ConsultaTabelas/ConsultaNCMSefaz"
+	"regexp"
 	"time"
 )
 
@@ -131,7 +132,7 @@ func (consulta *consultaNCM) UltimaAtualizacao() (time.Time, error) {
 }
 
 func (consulta *consultaNCM) ListarNCMPorData(data string) ([]*NCM.NomenclaturaBanco, error) {
-	dataConvertida, err := time.Parse("02/01/2006", data)
+	dataConvertida, err := consulta.paraData(data)
 	if err != nil {
 		return nil, err
 	}
@@ -140,4 +141,15 @@ func (consulta *consultaNCM) ListarNCMPorData(data string) ([]*NCM.NomenclaturaB
 		return nil, err
 	}
 	return lista, nil
+}
+
+func (consulta *consultaNCM) paraData(data string) (time.Time, error) {
+	r, _ := regexp.Compile("\\D+")
+	entrada := []byte(data)
+	saida := r.ReplaceAll(entrada, []byte(""))
+	dataConvertida, err := time.Parse("02012006", string(saida))
+	if err != nil {
+		return time.Time{}, err
+	}
+	return dataConvertida, nil
 }
