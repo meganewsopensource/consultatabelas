@@ -38,19 +38,17 @@ func (repository *repositoryNCM) Create(ncm *NcmBanco) error {
 
 	transacao.Commit()
 
-	return err
+	return nil
 }
 
-func (repository *repositoryNCM) GetAll() ([]*NcmBanco, error) {
-	var listaNcm []*NcmBanco
-	err := repository.db.Find(&listaNcm).Error
-	return listaNcm, err
+func (repository *repositoryNCM) GetAll() (lista []*NcmBanco, err error) {
+	err = repository.db.Find(&lista).Error
+	return
 }
 
-func (repository *repositoryNCM) GetByID(id uint) (*NcmBanco, error) {
-	var ncmSelecionado NcmBanco
-	err := repository.db.Find(&ncmSelecionado, id).Error
-	return &ncmSelecionado, err
+func (repository *repositoryNCM) GetByID(id uint) (ncmSelecionado *NcmBanco, err error) {
+	err = repository.db.Find(&ncmSelecionado, id).Error
+	return
 }
 
 func (repository *repositoryNCM) Update(ncm *NcmBanco) error {
@@ -66,11 +64,12 @@ func (repository *repositoryNCM) Update(ncm *NcmBanco) error {
 	}).CreateInBatches(ncm.Nomenclaturas, 1000).Error
 	if err != nil {
 		transacao.Rollback()
+		return err
 	}
 
 	transacao.Commit()
 
-	return err
+	return nil
 }
 
 func (repository *repositoryNCM) Delete(ncm *NcmBanco) error {

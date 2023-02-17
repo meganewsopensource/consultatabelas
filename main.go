@@ -72,7 +72,7 @@ func main() {
 
 	public := r.Group("/")
 	{
-		public.POST("AtualizarNCM", controllerNcm.AtualizarNCM)
+		public.POST("ncms/atualizar", controllerNcm.AtualizarNCM)
 		public.GET("ncms", controllerNcm.ListarNCMS)
 		public.GET("ncms/:data", controllerNcm.ListarNCMPorData)
 		public.GET("atualizacoes/ultima", controllerNcm.DataUltimaAtualizacao)

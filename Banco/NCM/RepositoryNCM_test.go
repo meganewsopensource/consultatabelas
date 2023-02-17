@@ -206,7 +206,7 @@ func Test_repositoryNCM_Update_FailNomenclaturas(t *testing.T) {
 
 	err = repository.Update(&ncmUpdate)
 	if err == nil {
-		t.Errorf("Ocorreu um erro ao tentar atualizar Nomenclaturas %v", err)
+		t.Errorf("Não ocorreu o erro esperado ao tentar atualizar Nomenclaturas %v", err)
 	}
 
 	deletarBanco(conexao)

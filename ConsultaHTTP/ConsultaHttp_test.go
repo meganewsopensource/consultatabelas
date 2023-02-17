@@ -20,7 +20,7 @@ func TestConsultaHttp_Consultar(t *testing.T) {
 		t.Errorf("Esperado erro igual a nil, recebi %v", erro)
 	}
 	textoResposta := string(resposta[:])
-	if textoResposta != textoResposta {
+	if esperado != textoResposta {
 		t.Errorf("Esperava resposta igual a %s, recebi %s", esperado, textoResposta)
 	}
 }

@@ -65,7 +65,6 @@ func (consulta *consultaNCM) AtualizarNCM() error {
 
 func (consulta *consultaNCM) gravarNCM(ncm NCM.NcmBanco) error {
 	var err error
-	err = nil
 	resposta, err := consulta.respotoryNCM.GetByID(1)
 	if err != nil {
 		return err
@@ -86,7 +85,7 @@ func (consulta *consultaNCM) gravarNCM(ncm NCM.NcmBanco) error {
 		}
 	}
 
-	return err
+	return nil
 }
 
 func (consulta *consultaNCM) listaNomenclatura(listaNCM ConsultaNCMSefaz.NcmReceita) ([]NCM.NomenclaturaBanco, error) {

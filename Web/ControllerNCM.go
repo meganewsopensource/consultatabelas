@@ -37,7 +37,7 @@ type IControllerNCM interface {
 // @Accept json
 // @Produce json
 // @Success 200 {string} NCM
-// @Router /AtualizarNCM [post]
+// @Router /ncms/atualizar [post]
 func (controller *controllerNCM) AtualizarNCM(context *gin.Context) {
 	err := controller.consulta.AtualizarNCM()
 	if err != nil {
