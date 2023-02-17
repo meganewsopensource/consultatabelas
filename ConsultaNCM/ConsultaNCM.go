@@ -58,9 +58,11 @@ func (consulta *consultaNCM) AtualizarNCM() error {
 			Nomenclaturas:            lista,
 		}
 		erro = consulta.gravarNCM(ncmBanco)
-		err = erro
+		if erro != nil {
+			return erro
+		}
 	}
-	return err
+	return nil
 }
 
 func (consulta *consultaNCM) gravarNCM(ncm NCM.NcmBanco) error {

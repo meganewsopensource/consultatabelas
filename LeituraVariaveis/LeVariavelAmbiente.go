@@ -15,12 +15,14 @@ type IVariavelAmbiente interface {
 }
 
 func NewLeVariavelAmbiente(nomeArquivo string) (IVariavelAmbiente, error) {
-	var err error
-	if _, err = os.Stat(nomeArquivo); err == nil {
-		err = godotenv.Load(nomeArquivo)
+	if _, err := os.Stat(nomeArquivo); err == nil {
+		err := godotenv.Load(nomeArquivo)
+		if err != nil {
+			return &leVariavelAmbiente{}, err
+		}
 	}
 
-	return &leVariavelAmbiente{}, err
+	return &leVariavelAmbiente{}, nil
 }
 
 func (variavel *leVariavelAmbiente) ConnectionString() string {

@@ -17,6 +17,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"log"
 )
 
 // @title Consulta Tabelas
@@ -39,7 +40,7 @@ import (
 func main() {
 	variaveis, err := LeituraVariaveis.NewLeVariavelAmbiente(".env")
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	sqlDB, err := sql.Open("pgx", variaveis.ConnectionString())
 	if err != nil {
