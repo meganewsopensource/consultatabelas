@@ -8,6 +8,10 @@ RUN apk update && apk add git
 
 RUN go mod download
 
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+
+RUN swag init
+
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 FROM alpine:latest
