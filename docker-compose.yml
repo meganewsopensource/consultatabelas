@@ -13,6 +13,7 @@ services:
       - '5432:5432'
     expose:
       - '5432'
+
   app:
     build: .
     restart: always
@@ -29,6 +30,7 @@ services:
     expose:
       - '8080'
       - '9090'
+
   mockoon:
     container_name: mockoon
     build:
@@ -38,3 +40,23 @@ services:
         version: 1
     ports:
       - "3001:3001"
+
+  newman:
+    depends_on:
+      app:
+        condition: service_started
+    image: gomessguii/newman:1.0.3
+    environment:
+      - COLLECTION=/home/collection/api-ncm.postman_collection.json
+      - ENVIRONMENT=/home/collection/Development.postman_environment.json
+      - ITERATIONS=1
+      - SLEEP=5
+    volumes:
+      - type: bind
+        source: ./Postman
+        target: /home/collection
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+
