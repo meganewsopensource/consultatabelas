@@ -44,7 +44,10 @@ build:image:
 test:test:
   image: golang:1.19.5-bullseye
   stage: test
+  before_script:
+    - go install github.com/swaggo/swag/cmd/swag@latest
   script:
+    - swag init
     - go test ./... -coverprofile=coverage.out  && ./exclude-from-code-coverage.sh
   artifacts:
     untracked: true
