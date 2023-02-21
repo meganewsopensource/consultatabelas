@@ -1,14 +1,71 @@
+stages:
+  - build
+  - test
+  - scan
+
+build:build:
+  image: golang:1.19.5-bullseye
+  stage: build
+  script:
+    - go build -o consultaTabelas_$(uname -p)
+  artifacts:
+    paths:
+      - consultaTabelas_$(uname -p)
+  tags:
+    - docker
+    - amd64
+
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - /var/lib/docker
+
 build:image:
+  stage: build
   image: docker:stable
   services:
     - docker:19-dind
   script:
     - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG || true
-    - docker build --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG -t $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG .
+    - docker pull $CI_REGISTRY_IMAGE:CI_COMMIT_REF_SLUG || true
+    - docker build --cache-from $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG -t $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG --platform=linux/arm64 --platform=linux/amd64 .
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  tags:
+    - amd64
+    - mega
+    - docker
+
+
+
+test:test:
+  image: golang:1.19.5-bullseye
+  stage: test
+  script:
+    - go test ./... -coverprofile=coverage.out  && ./exclude-from-code-coverage.sh
+  artifacts:
+    untracked: true
+  tags:
+    - docker
+    - amd64
+
+scan:sonarqube-check:
+  stage: scan
+  variables:
+    SONAR_HOST_URL: http://sonarqube.meganews.local
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
+    GIT_DEPTH: "0"
+  dependencies:
+    - test:test
+  only:
+    - schedules
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  script:
+    - /opt/sonar-scanner/bin/sonar-scanner
   allow_failure: true
   tags:
-    - mega
-    - amd64
-    - docker
+    - sonar
+    - linux
