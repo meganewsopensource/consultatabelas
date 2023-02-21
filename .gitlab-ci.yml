@@ -18,7 +18,6 @@ build:build:
     - docker
     - amd64
 
-
 cache:
   key: "$CI_COMMIT_REF_SLUG"
   paths:
@@ -39,8 +38,6 @@ build:image:
     - mega
     - docker
 
-
-
 test:test:
   image: golang:1.19.5-bullseye
   stage: test
@@ -48,7 +45,7 @@ test:test:
     - go install github.com/swaggo/swag/cmd/swag@latest
   script:
     - swag init
-    - go test ./... -coverprofile=coverage.out
+    - go test ./... -coverprofile=coverage.out  && ./exclude-from-code-coverage.sh
   artifacts:
     untracked: true
   tags:
