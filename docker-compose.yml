@@ -19,6 +19,7 @@ services:
     depends_on:
       - postgresdb
     environment:
+      TZ: America/Bahia
       CONNSTRING: "postgres://admin:admin@postgres:5432/tabelas"
       CONNHTTP: "http://mockoon:3001/"
 #      CONNHTTP: "https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json"
