@@ -12,22 +12,16 @@ import (
 )
 
 func TestNewControllerSaude(t *testing.T) {
-	type args struct {
-		verificaSaude Banco.IVerificaSaudeBanco
+	conexao, err := MockTestes.GerarConexaoBanco()
+	defer MockTestes.DeletarBanco(conexao)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao gerar conexão!")
 	}
-	tests := []struct {
-		name string
-		args args
-		want IControllerSaude
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := NewControllerSaude(tt.args.verificaSaude); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewControllerSaude() = %v, want %v", got, tt.want)
-			}
-		})
+	repository := NCM.NewRepositorySaude(conexao)
+	verificaSaude := Banco.NewVerificaSaudeBanco(repository)
+	controller := NewControllerSaude(verificaSaude)
+	if got := NewControllerSaude(verificaSaude); !reflect.DeepEqual(got, controller) {
+		t.Errorf("ControllerSaude %v diferente de %v", got, controller)
 	}
 }
 
