@@ -48,7 +48,7 @@ test:test:
     - go install github.com/swaggo/swag/cmd/swag@latest
   script:
     - swag init
-    - go test ./... -coverprofile=coverage.out   && ./exclude-from-code-coverage.sh
+    - go test ./... -coverprofile=coverage.out
   artifacts:
     untracked: true
   tags:
