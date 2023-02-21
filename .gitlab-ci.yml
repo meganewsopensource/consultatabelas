@@ -6,7 +6,10 @@ stages:
 build:build:
   image: golang:1.19.5-bullseye
   stage: build
+  before_script:
+    - go install github.com/swaggo/swag/cmd/swag@latest
   script:
+    - swag init
     - go build -o consultaTabelas_$(uname -p)
   artifacts:
     paths:
