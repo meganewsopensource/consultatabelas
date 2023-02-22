@@ -141,3 +141,23 @@ func Test_leVariavelAmbiente_CronExpression(t *testing.T) {
 			" quando deveria ser %s", stringCron, texto)
 	}
 }
+
+func Test_leVariavelAmbiente_ConnectionPort(t *testing.T) {
+	nome := "teste.txt"
+	texto := "CONNECTIONPORT: \"80\""
+	err := CriarArquivoEnv(nome, texto)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao criar o arquivo de ambiente! %v", err)
+	}
+	defer ApagarArquivo(nome)
+	variavel, err := NewLeVariavelAmbiente(nome)
+	if err != nil {
+		t.Errorf("Ocorreu um erro ao carregar os valores de ambiente! %v", err)
+	}
+
+	stringCron := variavel.ConnectionPort()
+	if strings.Contains(stringCron, texto) {
+		t.Errorf("Ocorreu um erro, o valor de conexão carregado foi %v, "+
+			" quando deveria ser %s", stringCron, texto)
+	}
+}
