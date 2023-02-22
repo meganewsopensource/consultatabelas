@@ -83,7 +83,7 @@ func main() {
 	}
 
 	runCronJobs(consulta.AtualizarNCM, variaveis.CronExpression())
-	r.Run()
+	r.Run(":" + variaveis.ConnectionPort())
 }
 
 func ConfigurarGin() *gin.Engine {

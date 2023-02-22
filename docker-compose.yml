@@ -23,9 +23,10 @@ services:
       TZ: America/Bahia
       CONNSTRING: "postgres://admin:admin@postgres:5432/tabelas"
       CONNHTTP: "http://mockoon:3001/"
+      CONNECTIONPORT: "80"
 #      CONNHTTP: "https://portalunico.siscomex.gov.br/classif/api/publico/nomenclatura/download/json"
     ports:
-      - '8080:8080'
+      - '8080:80'
       - '9090:9090'
     expose:
       - '8080'

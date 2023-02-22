@@ -12,6 +12,7 @@ type IVariavelAmbiente interface {
 	ConnectionString() string
 	ConnectionHttp() string
 	CronExpression() string
+	ConnectionPort() string
 }
 
 func NewLeVariavelAmbiente(nomeArquivo string) (IVariavelAmbiente, error) {
@@ -35,4 +36,8 @@ func (variavel *leVariavelAmbiente) ConnectionHttp() string {
 
 func (variavel *leVariavelAmbiente) CronExpression() string {
 	return os.Getenv("CRONEXPRESSION")
+}
+
+func (variavel *leVariavelAmbiente) ConnectionPort() string {
+	return os.Getenv("CONNECTIONPORT")
 }
