@@ -10,6 +10,8 @@ import (
 	"ConsultaTabelas/Web"
 	_ "ConsultaTabelas/docs"
 	"database/sql"
+	"log"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -17,7 +19,6 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"log"
 )
 
 // @title Consulta Tabelas
@@ -48,7 +49,7 @@ func main() {
 	}
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		Conn: sqlDB,
-	}), &gorm.Config{})
+	}), &gorm.Config{PrepareStmt: true})
 	if err != nil {
 		panic(err)
 	}
