@@ -1,0 +1,394 @@
+{
+	"info": {
+		"_postman_id": "c4834bae-2cad-4884-9e2e-e95c11d36e56",
+		"name": "api-ncm",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/ncms/atualizar",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"     pm.expect(pm.response.code).to.be.oneOf([200,409]);",
+							" });"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/ncms/atualizar",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"ncms",
+						"atualizar"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ncms/",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 or 204\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200,204]);",
+							"});",
+							"",
+							"",
+							"if(pm.response.code === 200)",
+							"{",
+							"    const schema = {",
+							"        \"$schema\": \"http://json-schema.org/draft-07/schema\",",
+							"        \"type\": \"array\",",
+							"        \"default\": [],",
+							"        \"examples\": [",
+							"            [",
+							"                {                    ",
+							"                    \"codigo\": \"01\",",
+							"                    \"descricao\": \"Animais vivos.\",",
+							"                    \"dataInicio\": \"01/01/2017\",",
+							"                    \"dataFim\": \"31/03/2022\",",
+							"                    \"tipoAto\": \"Res Camex\",",
+							"                    \"numeroAto\": \"000125\",",
+							"                    \"anoAto\": \"2016\",",
+							"                    \"dataUltimaAtualizacaoNcm\": \"19/09/2021\"",
+							"                }",
+							"            ]",
+							"        ],",
+							"        \"additionalItems\": true,",
+							"        \"items\": {",
+							"            \"anyOf\": [",
+							"                {",
+							"                    \"type\": \"object\",",
+							"                    \"default\": {},",
+							"                    \"examples\": [",
+							"                        {                            ",
+							"                            \"codigo\": \"01\",",
+							"                            \"descricao\": \"Animais vivos.\",",
+							"                            \"dataInicio\": \"01/01/2017\",",
+							"                            \"dataFim\": \"31/03/2022\",",
+							"                            \"tipoAto\": \"Res Camex\",",
+							"                            \"numeroAto\": \"000125\",",
+							"                            \"anoAto\": \"2016\",",
+							"                            \"dataUltimaAtualizacaoNcm\": \"19/09/2021\"",
+							"                        }",
+							"                    ],",
+							"                    \"required\": [                    ",
+							"                        \"codigo\",",
+							"                        \"descricao\",",
+							"                        \"dataInicio\",",
+							"                        \"dataFim\",",
+							"                        \"tipoAto\",",
+							"                        \"numeroAto\",",
+							"                        \"anoAto\",",
+							"                        \"dataUltimaAtualizacaoNcm\"",
+							"                    ],",
+							"                    \"properties\": {                        ",
+							"                        \"codigo\": {",
+							"                            \"type\": \"string\",",
+							"                        },",
+							"                        \"descricao\": {",
+							"                            \"type\": \"string\",",
+							"                        },",
+							"                        \"dataInicio\": {",
+							"                            \"type\": \"string\",",
+							"                        },",
+							"                        \"dataFim\": {",
+							"                            \"type\": \"string\",",
+							"                        },",
+							"                        \"tipoAto\": {",
+							"                            \"type\": \"string\",",
+							"                        },",
+							"                        \"numeroAto\": {",
+							"                            \"type\": \"string\",",
+							"                        },",
+							"                        \"anoAto\": {",
+							"                            \"type\": \"string\",",
+							"                        },",
+							"                        \"dataUltimaAtualizacaoNcm\": {",
+							"                            \"type\": \"string\",",
+							"                        }",
+							"                    },",
+							"                    \"additionalProperties\": true",
+							"                }",
+							"            ]",
+							"        }",
+							"    }",
+							"    let jsonData = pm.response.json();",
+							"    pm.test(\"DataInicio in correct format\", function () {",
+							"        pm.expect(jsonData[0].dataInicio).to.match(/^\\d{2}\\/\\d{2}\\/\\d{4}$/);",
+							"    });",
+							"",
+							"    pm.test(\"DataFim in correct format\", function () {",
+							"        pm.expect(jsonData[0].dataFim).to.match(/^\\d{2}\\/\\d{2}\\/\\d{4}$/);",
+							"    });",
+							"",
+							"    pm.test(\"dataUltimaAtualizacaoNcm in correct format\", function () {",
+							"        pm.expect(jsonData[0].dataUltimaAtualizacaoNcm).to.match(/^\\d{2}\\/\\d{2}\\/\\d{4}$/);",
+							"    });",
+							"    pm.test(\"Validating schema\", () => {pm.response.to.have.jsonSchema(schema)});",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/ncms/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"ncms",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "ncms/{data}",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 or 204\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200,204]);",
+							"});",
+							"",
+							"",
+							"if(pm.response.code === 200)",
+							"{",
+							"    const schema = {",
+							"        \"$schema\": \"http://json-schema.org/draft-07/schema\",",
+							"        \"type\": \"array\",",
+							"        \"default\": [],",
+							"        \"examples\": [",
+							"            [",
+							"                {                    ",
+							"                    \"codigo\": \"01\",",
+							"                    \"descricao\": \"Animais vivos.\",",
+							"                    \"dataInicio\": \"01/01/2017\",",
+							"                    \"dataFim\": \"31/03/2022\",",
+							"                    \"tipoAto\": \"Res Camex\",",
+							"                    \"numeroAto\": \"000125\",",
+							"                    \"anoAto\": \"2016\",",
+							"                    \"dataUltimaAtualizacaoNcm\": \"19/09/2021\"",
+							"                }",
+							"            ]",
+							"        ],",
+							"        \"additionalItems\": true,",
+							"        \"items\": {",
+							"            \"anyOf\": [",
+							"                {",
+							"                    \"type\": \"object\",",
+							"                    \"default\": {},",
+							"                    \"examples\": [",
+							"                        {                            ",
+							"                            \"codigo\": \"01\",",
+							"                            \"descricao\": \"Animais vivos.\",",
+							"                            \"dataInicio\": \"01/01/2017\",",
+							"                            \"dataFim\": \"31/03/2022\",",
+							"                            \"tipoAto\": \"Res Camex\",",
+							"                            \"numeroAto\": \"000125\",",
+							"                            \"anoAto\": \"2016\",",
+							"                            \"dataUltimaAtualizacaoNcm\": \"19/09/2021\"",
+							"                        }",
+							"                    ],",
+							"                    \"required\": [                        ",
+							"                        \"codigo\",",
+							"                        \"descricao\",",
+							"                        \"dataInicio\",",
+							"                        \"dataFim\",",
+							"                        \"tipoAto\",",
+							"                        \"numeroAto\",",
+							"                        \"anoAto\",",
+							"                        \"dataUltimaAtualizacaoNcm\"",
+							"                    ],",
+							"                    \"properties\": {                        ",
+							"                        \"codigo\": {",
+							"                            \"type\": \"string\",",
+							"                        },",
+							"                        \"descricao\": {",
+							"                            \"type\": \"string\",",
+							"                        },",
+							"                        \"dataInicio\": {",
+							"                            \"type\": \"string\",",
+							"                        },",
+							"                        \"dataFim\": {",
+							"                            \"type\": \"string\",",
+							"                        },",
+							"                        \"tipoAto\": {",
+							"                            \"type\": \"string\",",
+							"                        },",
+							"                        \"numeroAto\": {",
+							"                            \"type\": \"string\",",
+							"                        },",
+							"                        \"anoAto\": {",
+							"                            \"type\": \"string\",",
+							"                        },",
+							"                        \"dataUltimaAtualizacaoNcm\": {",
+							"                            \"type\": \"string\",",
+							"                        }",
+							"                    },",
+							"                    \"additionalProperties\": true",
+							"                }",
+							"            ]",
+							"        }",
+							"    }",
+							"    let jsonData = pm.response.json();",
+							"    pm.test(\"DataInicio in correct format\", function () {",
+							"        pm.expect(jsonData[0].dataInicio).to.match(/^\\d{2}\\/\\d{2}\\/\\d{4}$/);",
+							"    });",
+							"",
+							"    pm.test(\"DataFim in correct format\", function () {",
+							"        pm.expect(jsonData[0].dataFim).to.match(/^\\d{2}\\/\\d{2}\\/\\d{4}$/);",
+							"    });",
+							"",
+							"    pm.test(\"dataUltimaAtualizacaoNcm in correct format\", function () {",
+							"        pm.expect(jsonData[0].dataUltimaAtualizacaoNcm).to.match(/^\\d{2}\\/\\d{2}\\/\\d{4}$/);",
+							"    });",
+							"    pm.test(\"Validating schema\", () => {pm.response.to.have.jsonSchema(schema)});",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/ncms/{{data}}",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"ncms",
+						"{{data}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "atualizacoes/ultima",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200 or 204\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200,204]);",
+							"});",
+							"",
+							"if(pm.response.code === 200)",
+							"{",
+							"    let jsonData = pm.response.json();",
+							"    pm.test(\"Date is present in correct format\", function () {",
+							"        pm.expect(jsonData.data).to.match(/^\\d{2}\\/\\d{2}\\/\\d{4}$/);",
+							"    });",
+							"",
+							"    const schema = {",
+							"        \"$schema\": \"http://json-schema.org/draft-07/schema\",",
+							"        \"type\": \"object\",",
+							"        \"default\": {},",
+							"        \"items\": {",
+							"            \"anyOf\": [",
+							"                {",
+							"                    \"type\": \"object\",",
+							"                    \"default\": {},",
+							"                    \"required\": [",
+							"                        \"id\",",
+							"                        \"data\"",
+							"                    ],",
+							"                    \"properties\": {",
+							"                        \"id\": {",
+							"                            \"type\": \"integer\",",
+							"                            \"default\": 0,",
+							"                        },",
+							"                        \"data\": {",
+							"                            \"type\": \"string\",",
+							"                            \"default\": \"\",",
+							"                        }",
+							"                    },",
+							"                    \"additionalProperties\": true",
+							"                }",
+							"                ",
+							"            ]",
+							"        }",
+							"    }",
+							"",
+							"    pm.test(\"Validating schema\", () => {pm.response.to.have.jsonSchema(schema)});",
+							"}",
+							"",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/atualizacoes/ultima",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"atualizacoes",
+						"ultima"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "data",
+			"value": "01-01-2023",
+			"type": "string"
+		}
+	]
+}
