@@ -1,0 +1,16 @@
+name: API-Test
+
+on:
+  pull_request:
+    branches: main
+    
+jobs:
+  build-and-test:
+    runs-on:
+      labels:
+        - self-hosted
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: API Test
+      run: docker-compose up --exit-code-from newman
