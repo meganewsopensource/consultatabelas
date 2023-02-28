@@ -7,7 +7,7 @@ on:
   push:
 
 jobs:
-  build:
+  build-and-test:
     runs-on:
       labels:
         - self-hosted
@@ -26,4 +26,4 @@ jobs:
       run: CGO_ENABLED=0 go build -v ./...
 
     - name: Test
-      run: CGO_ENABLED=0 go test -v ./...
+      run: go test -v ./...
