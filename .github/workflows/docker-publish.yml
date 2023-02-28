@@ -18,15 +18,10 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN }}
-          
-      - name: Show GitHub Actions context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT" && echo ${{ github.repository_name }}
       
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/${{ github.repository_name }}:${{ github.sha }}
+          tags: ghcr.io/${{ env.GITHUB_REPOSITORY }}:${{ github.sha }}
