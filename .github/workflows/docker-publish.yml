@@ -24,4 +24,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ env.GITHUB_REPOSITORY }}:${{ github.sha }}
+          tags: ghcr.io/$GITHUB_REPOSITORY:${{ github.sha }}
