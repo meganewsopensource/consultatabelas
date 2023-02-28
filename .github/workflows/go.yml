@@ -5,14 +5,12 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
-
   build:
-    runs-on: ubuntu-latest
+    runs-on:
+      labels:
+        - self-hosted
     steps:
     - uses: actions/checkout@v3
 
