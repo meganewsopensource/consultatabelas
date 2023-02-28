@@ -20,7 +20,7 @@ jobs:
           password: ${{ secrets.GHCR_TOKEN }}
           
       - name: Show repository name
-        run: echo "${{ env.GITHUB_REPOSITORY }}" && echo "${{ vars.GITHUB_REPOSITORY }}" && echo "${{ GITHUB_REPOSITORY }}"
+        run: echo "${{ env.GITHUB_REPOSITORY }}" && echo "${{ vars.GITHUB_REPOSITORY }}" && echo "${{ github.repository }}"
       
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
