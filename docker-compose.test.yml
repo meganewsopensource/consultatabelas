@@ -1,0 +1,60 @@
+version: '3.8'
+services:
+  postgresdb:
+    image: postgres:15.1-alpine
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: admin
+      POSTGRES_DB: tabelas
+      TZ: America/Bahia
+    ports:
+      - '5432:5432'
+    expose:
+      - '5432'
+
+  app:
+    build: .
+    restart: always
+    depends_on:
+      - postgresdb
+    environment:
+      TZ: America/Bahia
+      CONNSTRING: "postgres://admin:admin@postgresdb:5432/tabelas"
+      CONNHTTP: "http://mockoon:3001/"
+      CONNECTIONPORT: "80"
+    ports:
+      - '8080:80'
+      - '9090:9090'
+    expose:
+      - '8080'
+      - '9090'
+
+  mockoon:
+    container_name: mockoon
+    build:
+      context: ./mockoon
+      dockerfile: Dockerfile
+      args:
+        version: 1
+    ports:
+      - "3001:3001"
+
+  newman:
+    depends_on:
+      app:
+        condition: service_started
+    image: gomessguii/newman:1.0.3
+    environment:
+      - COLLECTION=/home/collection/api-ncm.postman_collection.json
+      - ENVIRONMENT=/home/collection/Development.postman_environment.json
+      - ITERATIONS=1
+      - SLEEP=5
+    volumes:
+      - type: bind
+        source: ./Postman
+        target: /home/collection
+    deploy:
+      resources:
+        limits:
+          memory: 300M
