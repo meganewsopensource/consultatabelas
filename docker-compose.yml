@@ -19,7 +19,6 @@ services:
     restart: always
     depends_on:
       - postgresdb
-      - mockoon
     environment:
       TZ: America/Bahia
       CONNSTRING: "postgres://admin:admin@postgres:5432/tabelas"

@@ -17,7 +17,7 @@ services:
     build: .
     restart: always
     depends_on:
-      - postgresdb
+      - mockoon
     environment:
       TZ: America/Bahia
       CONNSTRING: "postgres://admin:admin@postgresdb:5432/tabelas"
@@ -31,12 +31,13 @@ services:
       - '9090'
 
   mockoon:
-    container_name: mockoon
     build:
       context: ./mockoon
       dockerfile: Dockerfile
       args:
         version: 1
+    depends_on:
+      - postgresdb
     ports:
       - "3001:3001"
 
