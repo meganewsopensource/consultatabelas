@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"time"
 )
 
 func GerarConexaoBanco() (*gorm.DB, error) {
@@ -52,8 +53,8 @@ func PreencheNomenclaturas() []ConsultaNCMSefaz.Nomenclatura {
 	lista = append(lista, ConsultaNCMSefaz.Nomenclatura{
 		Codigo:     "01",
 		Descricao:  "Teste 01",
-		DataInicio: "01/01/2023",
-		DataFim:    "31/12/2023",
+		DataInicio: time.Now().Add(-1 * 24 * time.Hour).Format("02/01/2006"),
+		DataFim:    time.Now().Add(2 * 24 * time.Hour).Format("02/01/2006"),
 		TipoAto:    "Regex",
 		NumeroAto:  "20",
 		AnoAto:     "2021",
@@ -61,8 +62,8 @@ func PreencheNomenclaturas() []ConsultaNCMSefaz.Nomenclatura {
 		ConsultaNCMSefaz.Nomenclatura{
 			Codigo:     "02",
 			Descricao:  "Teste 02",
-			DataInicio: "01/02/2023",
-			DataFim:    "28/02/2023",
+			DataInicio: time.Now().Add(-1 * 24 * time.Hour).Format("02/01/2006"),
+			DataFim:    time.Now().Add(2 * 24 * time.Hour).Format("02/01/2006"),
 			TipoAto:    "Regex 2",
 			NumeroAto:  "202",
 			AnoAto:     "2022",
