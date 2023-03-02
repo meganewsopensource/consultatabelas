@@ -1,16 +1,16 @@
-name: api-test
+name: API Test
 
 on:
   pull_request:
     branches: main
     
 jobs:
-  build-and-test:
+  test:
     runs-on:
       labels:
         - self-hosted
     steps:
     - uses: actions/checkout@v3
         
-    - name: API Test
+    - name: Run Newman test with Compose
       run: docker-compose --file=docker-compose.test.yml up --exit-code-from newman
